@@ -1,0 +1,977 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="New Wash" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+<link rel="icon" href="assets/icon-192.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<title>New Wash Express — Gestão</title>
+
+<style>
+  :root{
+    --black:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --line:#2a2a2a;
+    --red:#c1121f; --red-soft:#e0323f; --bordo:#7a0c14; --white:#ffffff;
+    --muted:#8a8a8a; --muted-2:#6a6a6a; --green:#2ec77a;
+    --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--black);color:var(--white);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+  body{max-width:520px;margin:0 auto;min-height:100vh;position:relative}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select,textarea{font-family:inherit}
+  h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.02em}
+  .mono{font-variant-numeric:tabular-nums}
+
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#0a0a0a 60%,rgba(10,10,10,.85));
+    padding:calc(var(--safe-top) + 16px) 20px 14px;backdrop-filter:blur(10px);
+    display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line)}
+  .logo{display:flex;align-items:center}
+  .logo-img{height:30px;width:auto;display:block}
+  .head-spacer{flex:1}
+  .today-pill{font-size:11px;color:var(--muted);text-align:right;line-height:1.35}
+  .today-pill b{color:#fff;font-weight:700;text-transform:capitalize}
+
+  main{padding:18px 16px 120px}
+  .view{display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .section-title{font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;
+    margin:22px 4px 12px;font-weight:700}
+  .section-title:first-child{margin-top:4px}
+
+  .datestrip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;margin:0 -2px;scrollbar-width:none}
+  .datestrip::-webkit-scrollbar{display:none}
+  .daycard{flex:none;width:52px;padding:10px 0;border-radius:14px;background:var(--surface);
+    border:1px solid var(--line);text-align:center;transition:.15s}
+  .daycard .dow{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .daycard .dnum{font-size:19px;font-weight:800;margin-top:3px}
+  .daycard.active{background:var(--red);border-color:var(--red);box-shadow:0 6px 18px -6px var(--red)}
+  .daycard.active .dow{color:#fff}
+  .daycard.today .dnum{color:var(--red-soft)}
+  .daycard.active.today .dnum{color:#fff}
+
+  .slot{display:flex;align-items:stretch;gap:12px;margin-bottom:10px}
+  .slot .time{width:52px;flex:none;font-weight:800;font-size:15px;color:#fff;padding-top:14px;text-align:right}
+  .slot .time small{display:block;font-size:9px;color:var(--muted-2);font-weight:600}
+  .slot .body{flex:1;min-height:46px;border-radius:14px;border:1px dashed var(--line);
+    display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-size:13px;transition:.15s}
+  .slot .body.empty:active{background:var(--surface)}
+  .slot.filled .body{border:none;flex-direction:column;align-items:stretch;justify-content:center;padding:0;gap:8px}
+  .appt{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--red);
+    border-radius:12px;padding:11px 13px;display:flex;align-items:center;gap:11px}
+  .appt.done{border-left-color:var(--green);opacity:.72}
+  .appt .veh{width:34px;height:34px;flex:none;border-radius:10px;background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;font-size:17px}
+  .appt .info{flex:1;min-width:0}
+  .appt .info .nm{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .appt .info .sv{font-size:11.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .appt .rgt{text-align:right;flex:none}
+  .appt .rgt .val{font-weight:800;font-size:13px}
+  .appt .rgt .st{font-size:10px;color:var(--muted);margin-top:3px}
+  .appt.done .rgt .st{color:var(--green)}
+  .add-mini{align-self:flex-start;font-size:12px;color:var(--muted);padding:6px 2px;font-weight:600}
+
+  .btn{width:100%;padding:16px;border-radius:14px;background:var(--red);color:#fff;font-weight:800;
+    font-size:15px;letter-spacing:.02em;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn:active{transform:scale(.98);background:var(--red-soft)}
+  .btn.ghost{background:var(--surface);border:1px solid var(--line);color:#fff}
+  .btn.ghost:active{background:var(--surface-2)}
+  .btn:disabled{opacity:.4;pointer-events:none}
+  .btn.danger{background:transparent;border:1px solid var(--bordo);color:var(--red-soft)}
+
+  nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;z-index:30;
+    background:rgba(14,14,14,.92);backdrop-filter:blur(16px);border-top:1px solid var(--line);
+    display:flex;justify-content:space-around;align-items:center;padding:8px 12px calc(var(--safe-bottom) + 8px)}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;color:var(--muted-2);
+    font-size:10px;font-weight:700;letter-spacing:.02em;transition:.15s}
+  .tab svg{width:23px;height:23px}
+  .tab.active{color:#fff}
+  .tab.active svg{color:var(--red-soft)}
+  .tab.fab{flex:none;margin-top:-26px}
+  .tab.fab .ring{width:58px;height:58px;border-radius:50%;background:var(--red);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px -6px var(--red);border:4px solid var(--black)}
+  .tab.fab .ring svg{width:26px;height:26px;color:#fff}
+  .tab.fab:active .ring{transform:scale(.94)}
+
+  .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;opacity:0;pointer-events:none;
+    transition:.25s;backdrop-filter:blur(2px)}
+  .sheet-bg.open{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);
+    width:100%;max-width:520px;background:var(--surface);z-index:41;border-radius:24px 24px 0 0;
+    border-top:1px solid var(--line);transition:transform .3s cubic-bezier(.32,.72,0,1);
+    max-height:92vh;overflow-y:auto;padding-bottom:calc(var(--safe-bottom) + 20px)}
+  .sheet.open{transform:translateX(-50%) translateY(0)}
+  .sheet .grab{width:38px;height:4px;background:var(--line);border-radius:2px;margin:12px auto 4px}
+  .sheet .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 4px}
+  .sheet .sheet-head h2{font-size:19px}
+  .sheet .close{width:32px;height:32px;border-radius:50%;background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--muted)}
+  .sheet-body{padding:14px 20px 20px}
+
+  label.fld{display:block;margin-bottom:14px}
+  label.fld .lb{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em;margin-bottom:7px;display:block}
+  .inp{width:100%;padding:14px;border-radius:12px;background:var(--black);border:1px solid var(--line);
+    color:#fff;font-size:15px;transition:.15s}
+  .inp:focus{outline:none;border-color:var(--red)}
+  .inp::placeholder{color:var(--muted-2)}
+  textarea.inp{resize:none;min-height:74px;line-height:1.4}
+  .row2{display:flex;gap:12px}.row2 label.fld{flex:1}
+  .lb-solo{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:9px}
+
+  .svc-grid{display:flex;flex-direction:column;gap:10px}
+  .svc{display:flex;align-items:center;gap:13px;padding:14px;border-radius:14px;background:var(--black);
+    border:1.5px solid var(--line);transition:.15s;position:relative}
+  .svc:active{background:var(--surface-2)}
+  .svc.on{border-color:var(--red);background:linear-gradient(90deg,rgba(193,18,31,.14),transparent)}
+  .svc .ico{width:42px;height:42px;flex:none;border-radius:12px;background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;font-size:21px}
+  .svc.on .ico{background:var(--red)}
+  .svc .t{flex:1}
+  .svc .t .n{font-weight:700;font-size:14.5px}
+  .svc .t .d{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .svc .p{font-weight:800;font-size:15px}
+  .svc .chk{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;
+    border:1.5px solid var(--line);display:none}
+  .svc.on .chk{display:flex;align-items:center;justify-content:center;background:var(--red);border-color:var(--red)}
+  .svc .p-wrap{text-align:right}
+
+  .timegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .tslot{padding:12px 0;border-radius:12px;background:var(--black);border:1.5px solid var(--line);
+    text-align:center;font-weight:700;font-size:14px;transition:.15s}
+  .tslot:active{background:var(--surface-2)}
+  .tslot.on{background:var(--red);border-color:var(--red)}
+  .tslot.busy{opacity:.5}
+  .tslot.busy .cnt{display:block;font-size:9px;color:var(--muted);font-weight:600;margin-top:1px}
+  .tslot.on .cnt{color:#fff}
+
+  .total-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 4px 6px}
+  .total-bar .l{color:var(--muted);font-size:13px;font-weight:600}
+  .total-bar .v{font-size:26px;font-weight:800}
+
+  /* lock */
+  .lock{text-align:center;padding:60px 30px 20px}
+  .lock .ic{width:70px;height:70px;border-radius:22px;background:var(--surface);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:30px}
+  .lock h2{font-size:21px;margin-bottom:8px}
+  .lock p{color:var(--muted);font-size:14px;margin:0 0 26px;line-height:1.5}
+  .pin{display:flex;gap:7px;justify-content:center;margin-bottom:20px}
+  .pin input{width:44px;height:56px;text-align:center;font-size:22px;font-weight:800;
+    background:var(--surface);border:1.5px solid var(--line);border-radius:12px;color:#fff}
+  .pin input:focus{outline:none;border-color:var(--red)}
+  .pin-err{color:var(--red-soft);font-size:13px;height:18px;font-weight:600}
+
+  /* dashboard sub-tabs */
+  .dash-subtabs{display:flex;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+  .dash-subtabs button{flex:1;padding:12px 0;font-size:13px;font-weight:700;color:var(--muted-2);
+    border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s}
+  .dash-subtabs button.on{color:#fff;border-bottom-color:var(--red)}
+  .dash-panel{display:none}.dash-panel.on{display:block;animation:fade .2s ease}
+
+  .period-tabs{display:flex;gap:8px;background:var(--surface);padding:5px;border-radius:14px;margin-bottom:18px}
+  .period-tabs button{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:700;color:var(--muted)}
+  .period-tabs button.on{background:var(--red);color:#fff}
+
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
+  .kpi.wide{grid-column:1/-1;background:linear-gradient(135deg,var(--bordo),#3a0509)}
+  .kpi .kl{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .kpi.wide .kl{color:rgba(255,255,255,.7)}
+  .kpi .kv{font-size:27px;font-weight:800;margin-top:8px;letter-spacing:-.02em}
+  .kpi.wide .kv{font-size:34px}
+  .kpi .ks{font-size:12px;color:var(--muted);margin-top:5px;font-weight:600}
+
+  .chart{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 16px 14px;margin-top:12px}
+  .chart h3{font-size:13px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
+  .bars{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:120px}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end}
+  .bar-col .bar{width:70%;max-width:26px;border-radius:6px 6px 0 0;
+    background:linear-gradient(180deg,var(--red-soft),var(--bordo));min-height:3px;transition:.4s}
+  .bar-col .bl{font-size:10px;color:var(--muted-2);font-weight:600}
+
+  /* custos */
+  .cat-summary{display:flex;gap:9px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scrollbar-width:none}
+  .cat-summary::-webkit-scrollbar{display:none}
+  .cat-card{flex:none;min-width:104px;background:var(--surface);border:1px solid var(--line);
+    border-radius:14px;padding:12px 13px}
+  .cat-card .ci{font-size:18px}
+  .cat-card .cn{font-size:11px;color:var(--muted);margin-top:6px;font-weight:600}
+  .cat-card .cv{font-size:16px;font-weight:800;margin-top:2px}
+  .exp-row{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid var(--line)}
+  .exp-row .ei{width:38px;height:38px;flex:none;border-radius:11px;background:var(--surface);
+    display:flex;align-items:center;justify-content:center;font-size:17px}
+  .exp-row .ed{flex:1;min-width:0}.exp-row .ed .en{font-weight:700;font-size:14px}
+  .exp-row .ed .edt{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .exp-row .ev{font-weight:800;color:var(--red-soft);white-space:nowrap}
+  .exp-row .del{color:var(--muted-2);padding:6px 4px;font-size:15px}
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .chip{padding:9px 13px;border-radius:11px;background:var(--black);border:1.5px solid var(--line);
+    font-size:13px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .chip.on{border-color:var(--red);background:linear-gradient(90deg,rgba(193,18,31,.16),transparent);color:#fff}
+
+  /* documentos */
+  .doc-filter{display:flex;gap:8px;background:var(--surface);padding:5px;border-radius:14px;margin-bottom:16px}
+  .doc-filter button{flex:1;padding:9px;border-radius:10px;font-size:12.5px;font-weight:700;color:var(--muted)}
+  .doc-filter button.on{background:var(--red);color:#fff}
+  .doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .doc{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;position:relative}
+  .doc .thumb{height:110px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden}
+  .doc .thumb img{width:100%;height:100%;object-fit:cover}
+  .doc .meta{padding:10px 11px}
+  .doc .meta .kn{font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--red-soft)}
+  .doc .meta .kn.comp{color:var(--green)}
+  .doc .meta .dn{font-size:12px;font-weight:700;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .doc .meta .dd{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .doc .rm{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;
+    background:rgba(0,0,0,.6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;backdrop-filter:blur(4px)}
+  .doc-add{display:flex;gap:10px}
+  .doc-add .btn{font-size:13px;padding:13px}
+  .empty-mini{text-align:center;padding:36px 20px;color:var(--muted-2);font-size:13px}
+
+  .mgr-actions{display:flex;gap:10px;margin-top:16px}
+  .mgr-actions .btn{font-size:13px;padding:13px}
+
+  .toast{position:fixed;bottom:calc(var(--safe-bottom) + 96px);left:50%;transform:translateX(-50%) translateY(20px);
+    background:#fff;color:#000;padding:12px 20px;border-radius:30px;font-weight:700;font-size:13.5px;z-index:60;
+    opacity:0;transition:.3s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .swatch-note{font-size:11px;color:var(--muted-2);text-align:center;padding:18px 20px 4px;line-height:1.5}
+
+  /* ---------- ORDEM DE SERVIÇO / PDF ---------- */
+  .os-preview{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#fff;color:#111}
+  #osDoc{display:none;background:#fff;color:#111}
+  .os-band{background:#0a0a0a;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:4px solid var(--red)}
+  .os-band img{height:34px;width:auto;display:block}
+  .os-band .os-tag{color:#fff;font-size:10px;font-weight:800;letter-spacing:.16em;text-align:right;line-height:1.6}
+  .os-band .os-tag b{color:var(--red-soft)}
+  .os-body{padding:24px 26px 26px}
+  .os-meta{display:flex;flex-wrap:wrap;gap:7px 26px;margin-bottom:20px;font-size:12.5px;color:#444}
+  .os-meta b{color:#000}
+  .os-meta .os-num{font-size:15px;font-weight:800;color:#000;width:100%;margin-bottom:2px}
+  .os-table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .os-table th{text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#999;padding:0 0 8px;border-bottom:2px solid #eee}
+  .os-table th.r,.os-table td.r{text-align:right}
+  .os-table td{padding:12px 0;border-bottom:1px solid #eee;color:#111;font-weight:600}
+  .os-total{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding:15px 18px;background:#0a0a0a;border-radius:12px;color:#fff}
+  .os-total .l{font-size:12px;letter-spacing:.1em;color:#bbb;font-weight:700}
+  .os-total .v{font-size:23px;font-weight:800}
+  .os-obs{margin-top:16px;padding:13px 15px;background:#f6f6f6;border-left:3px solid var(--red);border-radius:8px;font-size:12.5px;color:#333;line-height:1.45}
+  .os-obs b{display:block;font-size:10px;letter-spacing:.08em;color:#999;margin-bottom:4px;text-transform:uppercase}
+  .os-sign{display:flex;gap:30px;margin-top:42px}
+  .os-sign div{flex:1;border-top:1px solid #bbb;padding-top:7px;font-size:11px;color:#888;text-align:center}
+  .os-foot{margin-top:26px;text-align:center;font-size:10.5px;color:#aaa;letter-spacing:.04em}
+
+  @media print{
+    @page{ size:auto; margin:14mm; }
+    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+    html,body{background:#fff !important;max-width:none !important;margin:0 !important}
+    body>header,body>main,body>nav,.sheet,.sheet-bg,.toast{display:none !important}
+    #osDoc{display:block !important;border:none}
+  }
+</style>
+
+<!-- ===================== HEADER ===================== -->
+<header>
+  <div class="logo">
+    <img src="assets/logo-wordmark.png" class="logo-img" alt="New Wash Express" />
+  </div>
+  <div class="head-spacer"></div>
+  <div class="today-pill"><b id="todayLbl">—</b><br><span id="clock">—</span></div>
+</header>
+
+<main>
+  <!-- ===================== AGENDA ===================== -->
+  <section class="view active" id="view-agenda">
+    <div class="datestrip" id="datestrip"></div>
+    <div class="section-title" id="agendaTitle">Agenda do dia</div>
+    <div id="slots"></div>
+  </section>
+
+  <!-- ===================== DIRETORIA ===================== -->
+  <section class="view" id="view-dash">
+    <div id="dashLock" class="lock">
+      <div class="ic">🔒</div>
+      <h2>Painel dos diretores</h2>
+      <p>Área restrita. Digite a senha de acesso para ver faturamento, custos e documentos.</p>
+      <div class="pin" id="pinBox">
+        <input type="tel" maxlength="1" inputmode="numeric" /><input type="tel" maxlength="1" inputmode="numeric" />
+        <input type="tel" maxlength="1" inputmode="numeric" /><input type="tel" maxlength="1" inputmode="numeric" />
+        <input type="tel" maxlength="1" inputmode="numeric" /><input type="tel" maxlength="1" inputmode="numeric" />
+      </div>
+      <div class="pin-err" id="pinErr"></div>
+    </div>
+
+    <div id="dashContent" style="display:none">
+      <div class="dash-subtabs" id="dashSubtabs">
+        <button data-panel="resumo" class="on">Resumo</button>
+        <button data-panel="custos">Custos</button>
+        <button data-panel="docs">Documentos</button>
+      </div>
+
+      <!-- período (resumo + custos) -->
+      <div class="period-tabs" id="periodTabs">
+        <button data-p="day" class="on">Hoje</button>
+        <button data-p="week">Semana</button>
+        <button data-p="month">Mês</button>
+      </div>
+
+      <!-- PANEL: RESUMO -->
+      <div class="dash-panel on" id="panel-resumo">
+        <div class="kpi-grid">
+          <div class="kpi wide"><div class="kl">Faturamento</div>
+            <div class="kv mono" id="kFat">R$ 0</div><div class="ks" id="kFatSub">0 lavagens concluídas</div></div>
+          <div class="kpi"><div class="kl">Carros lavados</div>
+            <div class="kv mono" id="kCars">0</div><div class="ks" id="kCarsSub">0 agendados</div></div>
+          <div class="kpi"><div class="kl">Ticket médio</div>
+            <div class="kv mono" id="kTicket">R$ 0</div><div class="ks">por carro</div></div>
+          <div class="kpi"><div class="kl">Custos</div>
+            <div class="kv mono" id="kGasto" style="color:var(--red-soft)">R$ 0</div><div class="ks" id="kGastoSub">0 lançamentos</div></div>
+          <div class="kpi"><div class="kl">Lucro</div>
+            <div class="kv mono" id="kLucro">R$ 0</div><div class="ks">faturamento − custos</div></div>
+        </div>
+        <div class="chart"><h3 id="chartTitle">Carros por dia</h3><div class="bars" id="bars"></div></div>
+      </div>
+
+      <!-- PANEL: CUSTOS -->
+      <div class="dash-panel" id="panel-custos">
+        <div class="cat-summary" id="catSummary"></div>
+        <div class="section-title" style="margin-top:6px">Lançamentos</div>
+        <div id="expList"></div>
+        <div class="mgr-actions"><button class="btn" onclick="openCost()">＋ Novo custo</button></div>
+      </div>
+
+      <!-- PANEL: DOCUMENTOS -->
+      <div class="dash-panel" id="panel-docs">
+        <div class="doc-filter" id="docFilter">
+          <button data-k="all" class="on">Todos</button>
+          <button data-k="nota">Notas fiscais</button>
+          <button data-k="comprovante">Comprovantes</button>
+        </div>
+        <div class="doc-grid" id="docGrid"></div>
+        <div class="doc-add">
+          <button class="btn ghost" onclick="pickDoc('nota')">🧾 Nota fiscal</button>
+          <button class="btn ghost" onclick="pickDoc('comprovante')">💳 Comprovante</button>
+        </div>
+        <input type="file" id="docInput" accept="image/*,application/pdf" hidden />
+      </div>
+
+      <div class="mgr-actions">
+        <button class="btn danger" onclick="lockDash()">Sair do painel</button>
+        <button class="btn ghost" onclick="openSettings()">⚙︎ Configurar</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===================== NAV ===================== -->
+<nav>
+  <button class="tab active" data-tab="agenda">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Agenda
+  </button>
+  <button class="tab fab" onclick="openBooking()">
+    <span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+  </button>
+  <button class="tab" data-tab="dash">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="7"/><rect x="12" y="7" width="3" height="11"/><rect x="17" y="13" width="3" height="5"/></svg>
+    Painel
+  </button>
+</nav>
+
+<!-- ===================== SHEETS ===================== -->
+<div class="sheet-bg" id="sheetBg" onclick="closeSheet()"></div>
+
+<div class="sheet" id="bookSheet">
+  <div class="grab"></div>
+  <div class="sheet-head"><h2 id="bookTitle">Novo agendamento</h2><button class="close" onclick="closeSheet()">✕</button></div>
+  <div class="sheet-body">
+    <div class="lb-solo">Serviços</div>
+    <div class="svc-grid" id="svcGrid"></div>
+    <div class="lb-solo" style="margin-top:20px">Horário</div>
+    <div class="timegrid" id="timeGrid"></div>
+    <label class="fld" style="margin-top:20px"><span class="lb">Cliente</span>
+      <input class="inp" id="fCliente" placeholder="Nome do cliente" /></label>
+    <div class="row2">
+      <label class="fld"><span class="lb">Placa</span><input class="inp" id="fPlaca" placeholder="ABC-1D23" style="text-transform:uppercase" /></label>
+      <label class="fld"><span class="lb">Telefone</span><input class="inp" id="fTel" placeholder="(00) 0000-0000" inputmode="tel" /></label>
+    </div>
+    <label class="fld"><span class="lb">Observações</span>
+      <textarea class="inp" id="fObs" placeholder="Ex: riscos na porta, cliente vai esperar, retirar às 14h…"></textarea></label>
+    <div class="total-bar"><span class="l">Total</span><span class="v mono" id="bookTotal">R$ 0</span></div>
+    <button class="btn" id="saveBtn" onclick="saveBooking()">Confirmar agendamento</button>
+  </div>
+</div>
+
+<div class="sheet" id="apptSheet">
+  <div class="grab"></div>
+  <div class="sheet-head"><h2 id="adTitle">Agendamento</h2><button class="close" onclick="closeSheet()">✕</button></div>
+  <div class="sheet-body" id="apptBody"></div>
+</div>
+
+<div class="sheet" id="costSheet">
+  <div class="grab"></div>
+  <div class="sheet-head"><h2>Novo custo</h2><button class="close" onclick="closeSheet()">✕</button></div>
+  <div class="sheet-body">
+    <div class="lb-solo">Categoria</div>
+    <div class="chip-row" id="catChips"></div>
+    <label class="fld" style="margin-top:16px"><span class="lb">Descrição</span><input class="inp" id="eDesc" placeholder="Ex: Shampoo automotivo / Salário João" /></label>
+    <div class="row2">
+      <label class="fld"><span class="lb">Valor (R$)</span><input class="inp" id="eVal" placeholder="0,00" inputmode="decimal" /></label>
+      <label class="fld"><span class="lb">Data</span><input class="inp" id="eDate" type="date" /></label>
+    </div>
+    <button class="btn" onclick="saveCost()">Salvar custo</button>
+  </div>
+</div>
+
+<div class="sheet" id="setSheet">
+  <div class="grab"></div>
+  <div class="sheet-head"><h2>Configurações</h2><button class="close" onclick="closeSheet()">✕</button></div>
+  <div class="sheet-body">
+    <label class="fld"><span class="lb">Senha do painel (6 dígitos)</span><input class="inp" id="setPin" maxlength="6" inputmode="numeric" placeholder="******" /></label>
+    <div class="row2">
+      <label class="fld"><span class="lb">Abertura</span><input class="inp" id="setOpen" type="time" /></label>
+      <label class="fld"><span class="lb">Fechamento</span><input class="inp" id="setClose" type="time" /></label>
+    </div>
+    <button class="btn" onclick="saveSettings()">Salvar configurações</button>
+    <div class="mgr-actions"><button class="btn danger" onclick="wipeData()">Apagar todos os dados</button></div>
+    <div class="swatch-note">Protótipo local — dados e documentos ficam neste aparelho. Próxima fase: nuvem (Supabase) pra sincronizar todos os celulares e guardar os arquivos.</div>
+  </div>
+</div>
+
+<!-- documento imprimível (só aparece na impressão/PDF) -->
+<div id="osDoc"></div>
+
+<!-- sucesso do agendamento + PDF -->
+<div class="sheet" id="okSheet">
+  <div class="grab"></div>
+  <div class="sheet-head"><h2>Agendamento confirmado ✓</h2><button class="close" onclick="closeSheet()">✕</button></div>
+  <div class="sheet-body">
+    <div class="os-preview" id="osPreview"></div>
+    <button class="btn" style="margin-top:16px" onclick="printCurrentOS()">⬇︎ Salvar / imprimir PDF</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Concluir</button>
+    <div class="swatch-note">No celular: toque em <b>Salvar/Imprimir</b> → "Salvar em PDF" ou compartilhe direto no WhatsApp.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ===== Supabase (nuvem) ===== */
+const SB_URL='https://dgfoojpcgywrkhfqlfxd.supabase.co';
+const SB_KEY='sb_publishable_16cjr1tvjRLcyTiQTr9IbQ_ui3Q1bEA';
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+/* ============================================================
+   NEW WASH EXPRESS — gestão (protótipo local)
+   ============================================================ */
+const SERVICES = [
+  {id:'hatch',  name:'Lavagem simples — Hatch',       desc:'Carro pequeno',        price:65, icon:'🚗', main:true},
+  {id:'sedan',  name:'Lavagem simples — Sedan / SUV', desc:'Carro médio / SUV',    price:75, icon:'🚙', main:true},
+  {id:'camion', name:'Lavagem simples — Camionete',   desc:'Picape / caminhonete', price:95, icon:'🛻', main:true},
+  {id:'cera',   name:'Cera líquida',                  desc:'Adicional de proteção',price:35, icon:'✨', main:false},
+];
+const COST_CATS = [
+  {id:'insumo',  name:'Insumos',     icon:'🧴'},
+  {id:'salario', name:'Salários',    icon:'👷'},
+  {id:'aluguel', name:'Aluguel',     icon:'🏠'},
+  {id:'agua_luz',name:'Água / Luz',  icon:'💡'},
+  {id:'manut',   name:'Manutenção',  icon:'🔧'},
+  {id:'outros',  name:'Outros',      icon:'📦'},
+];
+const DEFAULTS = { pin:'177042', open:'08:00', close:'18:00' };
+
+let DB = { appts:[], exps:[], docs:[] };
+const store = {
+  get appts(){ return DB.appts; },
+  get exps(){ return DB.exps; },
+  get cfg(){ return {...DEFAULTS, ...JSON.parse(localStorage.getItem('nw_cfg')||'{}')}; },
+  set cfg(v){ localStorage.setItem('nw_cfg', JSON.stringify(v)); },
+};
+const rowFromAppt=a=>({id:a.id,os_num:a.osNum,date:a.date,time:a.time,services:a.services,customer:a.customer,plate:a.plate,phone:a.phone,obs:a.obs,status:a.status,created_at:a.createdAt,done_at:a.doneAt});
+const apptFromRow=r=>({id:r.id,osNum:r.os_num,date:r.date,time:r.time,services:r.services||[],customer:r.customer,plate:r.plate,phone:r.phone,obs:r.obs,status:r.status,createdAt:r.created_at,doneAt:r.done_at});
+const rowFromExp=e=>({id:e.id,description:e.desc,amount:e.amount,date:e.date,category:e.cat,created_at:e.createdAt||Date.now()});
+const expFromRow=r=>({id:r.id,desc:r.description,amount:Number(r.amount),date:r.date,cat:r.category,createdAt:r.created_at});
+const sbDocUrl=p=>sb.storage.from('documentos').getPublicUrl(p).data.publicUrl;
+const docFromRow=r=>({id:r.id,name:r.name,kind:r.kind,date:r.date,mime:r.mime,size:r.size,path:r.path,url:sbDocUrl(r.path),createdAt:r.created_at});
+async function sbErr(p,msg){ const {error}=await p; if(error){ console.error(error); toast(msg||'Erro ao sincronizar'); } return !error; }
+
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const DOW = ['dom','seg','ter','qua','qui','sex','sáb'];
+const MON = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const money = n => 'R$ ' + Number(n).toLocaleString('pt-BR',{maximumFractionDigits:0});
+const money2 = n => 'R$ ' + Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const catById = id => COST_CATS.find(c=>c.id===id) || COST_CATS[COST_CATS.length-1];
+
+let selDate = new Date();
+let bookState = { services:[], time:null };
+let dashUnlocked = false, dashPeriod = 'day', dashPanel = 'resumo';
+let costCat = 'insumo', docFilter = 'all';
+
+function tickHeader(){
+  const n = new Date();
+  document.getElementById('todayLbl').textContent = `${DOW[n.getDay()]}, ${n.getDate()} ${MON[n.getMonth()]}`;
+  document.getElementById('clock').textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}`;
+}
+setInterval(tickHeader, 30000); tickHeader();
+
+/* ---------- DATE STRIP ---------- */
+function renderDateStrip(){
+  const el = document.getElementById('datestrip'); el.innerHTML='';
+  const today = new Date(); today.setHours(0,0,0,0);
+  for(let i=0;i<14;i++){
+    const d = new Date(today); d.setDate(today.getDate()+i);
+    const c = document.createElement('button');
+    c.className = 'daycard'+(ymd(d)===ymd(selDate)?' active':'')+(i===0?' today':'');
+    c.innerHTML = `<div class="dow">${DOW[d.getDay()]}</div><div class="dnum">${d.getDate()}</div>`;
+    c.onclick = ()=>{ selDate = d; renderDateStrip(); renderSlots(); };
+    el.appendChild(c);
+  }
+}
+
+/* ---------- SLOTS ---------- */
+function timeSlots(){
+  const cfg = store.cfg;
+  const [oh,om]=cfg.open.split(':').map(Number), [ch,cm]=cfg.close.split(':').map(Number);
+  const out=[]; let t=oh*60+om; const end=ch*60+cm;
+  while(t<end){ out.push(`${pad(Math.floor(t/60))}:${pad(t%60)}`); t+=30; } return out;
+}
+const apptsFor = ds => store.appts.filter(a=>a.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
+const svcById = id => SERVICES.find(s=>s.id===id);
+const apptTotal = a => a.services.reduce((s,id)=>s+(svcById(id)?.price||0),0);
+const apptVehIcon = a => { const m=a.services.map(svcById).find(s=>s&&s.main); return m?m.icon:'✨'; };
+const apptSvcNames = a => a.services.map(id=>svcById(id)?.name.replace('Lavagem simples — ','').replace(' líquida','')).join(' + ');
+
+function renderSlots(){
+  const dateStr = ymd(selDate), list = apptsFor(dateStr), isToday = ymd(new Date())===dateStr;
+  document.getElementById('agendaTitle').textContent = isToday ? 'Agenda de hoje' : `Agenda — ${selDate.getDate()} ${MON[selDate.getMonth()]}`;
+  const wrap = document.getElementById('slots'); wrap.innerHTML='';
+  const byTime={}; list.forEach(a=>{ (byTime[a.time]=byTime[a.time]||[]).push(a); });
+  timeSlots().forEach(t=>{
+    const items = byTime[t]||[];
+    const slot = document.createElement('div');
+    slot.className = 'slot'+(items.length?' filled':'');
+    const label = `<div class="time">${t}<small>30 min</small></div>`;
+    if(!items.length){
+      slot.innerHTML = label + `<div class="body empty">+ agendar</div>`;
+      slot.querySelector('.body').onclick = ()=>openBooking(t);
+    }else{
+      const cards = items.map(a=>`
+        <div class="appt ${a.status==='done'?'done':''}" data-id="${a.id}">
+          <div class="veh">${apptVehIcon(a)}</div>
+          <div class="info"><div class="nm">${a.customer||'Sem nome'}</div>
+            <div class="sv">${apptSvcNames(a)}${a.plate?' · '+a.plate:''}</div></div>
+          <div class="rgt"><div class="val mono">${money(apptTotal(a))}</div>
+            <div class="st">${a.status==='done'?'✓ concluído':'agendado'}</div></div>
+        </div>`).join('');
+      slot.innerHTML = label + `<div class="body">${cards}<button class="add-mini">+ adicionar neste horário</button></div>`;
+      slot.querySelectorAll('.appt').forEach(el=>el.onclick=()=>openApptDetail(el.dataset.id));
+      slot.querySelector('.add-mini').onclick = ()=>openBooking(t);
+    }
+    wrap.appendChild(slot);
+  });
+}
+
+/* ---------- BOOKING ---------- */
+function openBooking(preTime=null){
+  bookState = { services:[], time:preTime };
+  document.getElementById('fCliente').value=''; document.getElementById('fPlaca').value='';
+  document.getElementById('fTel').value=''; document.getElementById('fObs').value='';
+  renderSvcGrid(); renderTimeGrid(); updateBookTotal(); openSheet('bookSheet');
+}
+function renderSvcGrid(){
+  const g = document.getElementById('svcGrid'); g.innerHTML='';
+  SERVICES.forEach(s=>{
+    const on = bookState.services.includes(s.id);
+    const el = document.createElement('div'); el.className = 'svc'+(on?' on':'');
+    el.innerHTML = `<div class="ico">${s.icon}</div>
+      <div class="t"><div class="n">${s.name}</div><div class="d">${s.desc}</div></div>
+      <div class="p-wrap"><div class="p mono">${money(s.price)}</div></div>
+      <div class="chk"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>`;
+    el.onclick = ()=>{
+      if(s.main){ const others = SERVICES.filter(x=>x.main && x.id!==s.id).map(x=>x.id);
+        bookState.services = bookState.services.filter(id=>!others.includes(id)); }
+      const i = bookState.services.indexOf(s.id);
+      if(i>=0) bookState.services.splice(i,1); else bookState.services.push(s.id);
+      renderSvcGrid(); updateBookTotal();
+    };
+    g.appendChild(el);
+  });
+}
+function renderTimeGrid(){
+  const g = document.getElementById('timeGrid'); g.innerHTML='';
+  const counts={}; apptsFor(ymd(selDate)).forEach(a=>counts[a.time]=(counts[a.time]||0)+1);
+  timeSlots().forEach(t=>{
+    const b = document.createElement('button'); const busy=counts[t]||0;
+    b.className='tslot'+(bookState.time===t?' on':'')+(busy?' busy':'');
+    b.innerHTML = t + (busy?`<span class="cnt">${busy} carro${busy>1?'s':''}</span>`:'');
+    b.onclick=()=>{ bookState.time=t; renderTimeGrid(); };
+    g.appendChild(b);
+  });
+}
+function updateBookTotal(){
+  const total = bookState.services.reduce((s,id)=>s+(svcById(id)?.price||0),0);
+  document.getElementById('bookTotal').textContent = money(total);
+  document.getElementById('saveBtn').disabled = !(bookState.services.length && bookState.time);
+}
+function saveBooking(){
+  if(!bookState.services.length || !bookState.time) return;
+  const appt = {
+    id:'a'+Date.now()+Math.random().toString(36).slice(2,6),
+    osNum:getNextOs(),
+    date:ymd(selDate), time:bookState.time, services:[...bookState.services],
+    customer:document.getElementById('fCliente').value.trim(),
+    plate:document.getElementById('fPlaca').value.trim().toUpperCase(),
+    phone:document.getElementById('fTel').value.trim(),
+    obs:document.getElementById('fObs').value.trim(),
+    status:'scheduled', createdAt:Date.now(),
+  };
+  DB.appts.push(appt);
+  sbErr(sb.from('appointments').insert(rowFromAppt(appt)));
+  closeSheet(); renderSlots(); renderDateStrip(); showBookingSuccess(appt);
+}
+
+/* ---------- ORDEM DE SERVIÇO / PDF ---------- */
+function getNextOs(){ return Math.max(1000, ...DB.appts.map(a=>a.osNum||0)) + 1; }
+function buildOSHtml(a){
+  const dateBR=a.date.split('-').reverse().join('/');
+  const c=new Date(a.createdAt||Date.now()); const hhmm=`${pad(c.getHours())}:${pad(c.getMinutes())}`;
+  const rows=a.services.map(id=>{const s=svcById(id);return `<tr><td>${s.name}</td><td class="r">${money2(s.price)}</td></tr>`}).join('');
+  const obs=a.obs?`<div class="os-obs"><b>Observações</b>${a.obs.replace(/</g,'&lt;')}</div>`:'';
+  return `<div class="os-band"><img src="assets/logo-wordmark.png" alt="New Wash Express"><div class="os-tag"><b>ORDEM DE SERVIÇO</b><br>ORÇAMENTO</div></div>
+  <div class="os-body">
+    <div class="os-meta">
+      <div class="os-num">Nº OS ${a.osNum||'—'}</div>
+      <div><b>Agendado:</b> ${dateBR} às ${a.time}</div>
+      <div><b>Emitido:</b> ${dateBR} ${hhmm}</div>
+      <div><b>Cliente:</b> ${(a.customer||'—').replace(/</g,'&lt;')}</div>
+      ${a.plate?`<div><b>Placa:</b> ${a.plate}</div>`:''}
+      ${a.phone?`<div><b>Telefone:</b> ${a.phone}</div>`:''}
+    </div>
+    <table class="os-table"><thead><tr><th>Serviço</th><th class="r">Valor</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="os-total"><span class="l">TOTAL</span><span class="v">${money2(apptTotal(a))}</span></div>
+    ${obs}
+    <div class="os-sign"><div>Assinatura do cliente</div><div>Responsável — New Wash Express</div></div>
+    <div class="os-foot">NEW WASH EXPRESS · Lavagem premium · Agradecemos a preferência</div>
+  </div>`;
+}
+let curOSId=null;
+function showBookingSuccess(a){
+  curOSId=a.id; const html=buildOSHtml(a);
+  document.getElementById('osPreview').innerHTML=html;
+  document.getElementById('osDoc').innerHTML=html;
+  openSheet('okSheet');
+}
+function printCurrentOS(){ printOS(curOSId); }
+function printOS(id){
+  const a=store.appts.find(x=>x.id===id); if(!a) return;
+  document.getElementById('osDoc').innerHTML=buildOSHtml(a);
+  setTimeout(()=>window.print(),150);
+}
+
+/* ---------- APPT DETAIL ---------- */
+let curAppt = null;
+function openApptDetail(id){
+  const a = store.appts.find(x=>x.id===id); if(!a) return; curAppt=a;
+  const svc = a.services.map(id=>{const s=svcById(id);return `<div class="svc" style="pointer-events:none"><div class="ico">${s.icon}</div><div class="t"><div class="n">${s.name}</div></div><div class="p mono">${money(s.price)}</div></div>`}).join('');
+  const obs = a.obs ? `<div style="background:var(--black);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:14px"><div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;letter-spacing:.05em">OBSERVAÇÕES</div><div style="font-size:14px;line-height:1.45">${a.obs.replace(/</g,'&lt;')}</div></div>` : '';
+  document.getElementById('apptBody').innerHTML = `
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px">
+      <div class="veh" style="width:48px;height:48px;font-size:22px;border-radius:14px;background:var(--surface-2);display:flex;align-items:center;justify-content:center">${apptVehIcon(a)}</div>
+      <div><div style="font-weight:800;font-size:18px">${a.customer||'Sem nome'}</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:2px">${a.date.split('-').reverse().join('/')} · ${a.time}${a.plate?' · '+a.plate:''}${a.phone?' · '+a.phone:''}</div></div>
+    </div>
+    <div class="svc-grid" style="margin-top:16px">${svc}</div>${obs}
+    <div class="total-bar"><span class="l">Total</span><span class="v mono">${money(apptTotal(a))}</span></div>
+    <button class="btn ghost" style="margin-bottom:10px" onclick="printOS('${a.id}')">⬇︎ Gerar orçamento / OS (PDF)</button>
+    ${a.status==='done'
+      ? `<button class="btn ghost" onclick="setApptStatus('scheduled')">↩︎ Reabrir agendamento</button>`
+      : `<button class="btn" onclick="setApptStatus('done')">✓ Marcar como concluído</button>`}
+    <div class="mgr-actions"><button class="btn danger" onclick="deleteAppt()">Cancelar agendamento</button></div>`;
+  document.getElementById('adTitle').textContent = a.status==='done'?'Lavagem concluída':'Agendamento';
+  openSheet('apptSheet');
+}
+function setApptStatus(st){
+  const a=DB.appts.find(x=>x.id===curAppt.id);
+  a.status=st; a.doneAt=(st==='done')?Date.now():null;
+  sbErr(sb.from('appointments').update({status:a.status,done_at:a.doneAt}).eq('id',a.id));
+  closeSheet(); renderSlots(); toast(st==='done'?'Lavagem concluída ✓':'Agendamento reaberto');
+}
+function deleteAppt(){
+  const id=curAppt.id; DB.appts = DB.appts.filter(x=>x.id!==id);
+  sbErr(sb.from('appointments').delete().eq('id',id));
+  closeSheet(); renderSlots(); renderDateStrip(); toast('Agendamento cancelado');
+}
+
+/* ---------- PIN ---------- */
+function setupPin(){
+  const inputs = [...document.querySelectorAll('#pinBox input')];
+  inputs.forEach((inp,i)=>{
+    inp.addEventListener('input',()=>{
+      inp.value = inp.value.replace(/\D/g,'');
+      if(inp.value && i<inputs.length-1) inputs[i+1].focus();
+      const code = inputs.map(x=>x.value).join('');
+      if(code.length===inputs.length) checkPin(code);
+    });
+    inp.addEventListener('keydown',e=>{ if(e.key==='Backspace' && !inp.value && i>0) inputs[i-1].focus(); });
+  });
+}
+function checkPin(code){
+  if(code===store.cfg.pin){ dashUnlocked=true; showDash(); }
+  else{
+    document.getElementById('pinErr').textContent='Senha incorreta';
+    document.querySelectorAll('#pinBox input').forEach(x=>x.value='');
+    document.querySelector('#pinBox input').focus(); navigator.vibrate?.(200);
+    setTimeout(()=>document.getElementById('pinErr').textContent='',1500);
+  }
+}
+function showDash(){
+  document.getElementById('dashLock').style.display='none';
+  document.getElementById('dashContent').style.display='block';
+  renderDash();
+}
+function lockDash(){
+  dashUnlocked=false;
+  document.getElementById('dashLock').style.display='block';
+  document.getElementById('dashContent').style.display='none';
+  document.querySelectorAll('#pinBox input').forEach(x=>x.value='');
+}
+
+/* ---------- DASHBOARD ---------- */
+function periodRange(p){
+  const now=new Date(); now.setHours(0,0,0,0); let start=new Date(now);
+  if(p==='week') start.setDate(now.getDate()-6); else if(p==='month') start.setDate(1);
+  const end=new Date(now); end.setHours(23,59,59,999); return {start,end};
+}
+const inRange = (ds,r)=>{ const d=new Date(ds+'T12:00:00'); return d>=r.start && d<=r.end; };
+
+function renderDash(){
+  const r = periodRange(dashPeriod);
+  const appts = store.appts.filter(a=>inRange(a.date,r));
+  const done = appts.filter(a=>a.status==='done');
+  const fat = done.reduce((s,a)=>s+apptTotal(a),0);
+  const exps = store.exps.filter(e=>inRange(e.date,r));
+  const gasto = exps.reduce((s,e)=>s+Number(e.amount),0);
+  document.getElementById('kFat').textContent = money(fat);
+  document.getElementById('kFatSub').textContent = `${done.length} lavagem${done.length!==1?'s':''} concluída${done.length!==1?'s':''}`;
+  document.getElementById('kCars').textContent = done.length;
+  document.getElementById('kCarsSub').textContent = `${appts.length} agendado${appts.length!==1?'s':''}`;
+  document.getElementById('kTicket').textContent = money(done.length?fat/done.length:0);
+  document.getElementById('kGasto').textContent = money(gasto);
+  document.getElementById('kGastoSub').textContent = `${exps.length} lançamento${exps.length!==1?'s':''}`;
+  const lucro=fat-gasto, kl=document.getElementById('kLucro');
+  kl.textContent = money(lucro); kl.style.color = lucro>=0?'var(--green)':'var(--red-soft)';
+  renderBars();
+  renderCustos(exps);
+}
+function renderBars(){
+  const wrap=document.getElementById('bars'); wrap.innerHTML='';
+  if(dashPeriod==='day'){
+    document.getElementById('chartTitle').textContent='Carros por horário (hoje)';
+    const dateStr=ymd(new Date());
+    const done=store.appts.filter(a=>a.date===dateStr && a.status==='done');
+    const buckets={}; timeSlots().filter((_,i)=>i%2===0).forEach(t=>buckets[t.slice(0,2)+'h']=0);
+    done.forEach(a=>{const h=a.time.slice(0,2)+'h'; buckets[h]=(buckets[h]||0)+1;});
+    return drawBars(buckets);
+  }
+  document.getElementById('chartTitle').textContent='Carros por dia';
+  const days=dashPeriod==='week'?7:new Date().getDate();
+  const buckets={}; const now=new Date(); now.setHours(0,0,0,0);
+  for(let i=days-1;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i);
+    buckets[`${d.getDate()}/${d.getMonth()+1}`]={date:ymd(d),v:0}; }
+  store.appts.filter(a=>a.status==='done').forEach(a=>{ Object.values(buckets).forEach(b=>{ if(b.date===a.date) b.v++; }); });
+  const simple={}; Object.entries(buckets).forEach(([k,v])=>simple[k]=v.v); drawBars(simple);
+}
+function drawBars(buckets){
+  const wrap=document.getElementById('bars'); const max=Math.max(1,...Object.values(buckets));
+  const entries=Object.entries(buckets); const step=Math.max(1,Math.ceil(entries.length/8));
+  entries.forEach(([k,v],i)=>{
+    const col=document.createElement('div'); col.className='bar-col';
+    col.innerHTML=`<div class="bar" style="height:${(v/max)*100}%"></div><div class="bl">${i%step===0?k:''}</div>`;
+    col.title=`${k}: ${v}`; wrap.appendChild(col);
+  });
+}
+function renderCustos(exps){
+  // category summary
+  const cs=document.getElementById('catSummary'); cs.innerHTML='';
+  const totals={}; COST_CATS.forEach(c=>totals[c.id]=0);
+  exps.forEach(e=>{ totals[e.cat!=null?e.cat:'outros']=(totals[e.cat!=null?e.cat:'outros']||0)+Number(e.amount); });
+  COST_CATS.forEach(c=>{
+    const card=document.createElement('div'); card.className='cat-card';
+    card.innerHTML=`<div class="ci">${c.icon}</div><div class="cn">${c.name}</div><div class="cv mono">${money(totals[c.id]||0)}</div>`;
+    cs.appendChild(card);
+  });
+  // list
+  const el=document.getElementById('expList'); el.innerHTML='';
+  if(!exps.length){ el.innerHTML='<div class="empty-mini">Nenhum custo no período.</div>'; return; }
+  exps.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{
+    const c=catById(e.cat);
+    const row=document.createElement('div'); row.className='exp-row';
+    row.innerHTML=`<div class="ei">${c.icon}</div><div class="ed"><div class="en">${(e.desc||c.name).replace(/</g,'&lt;')}</div>
+      <div class="edt">${c.name} · ${e.date.split('-').reverse().join('/')}</div></div>
+      <div class="ev mono">− ${money2(e.amount)}</div><button class="del">✕</button>`;
+    row.querySelector('.del').onclick=()=>{ DB.exps=DB.exps.filter(x=>x.id!==e.id); sbErr(sb.from('expenses').delete().eq('id',e.id)); renderDash(); toast('Custo removido'); };
+    el.appendChild(row);
+  });
+}
+document.getElementById('periodTabs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  dashPeriod=b.dataset.p;
+  document.querySelectorAll('#periodTabs button').forEach(x=>x.classList.toggle('on',x===b));
+  renderDash();
+});
+document.getElementById('dashSubtabs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  dashPanel=b.dataset.panel;
+  document.querySelectorAll('#dashSubtabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.dash-panel').forEach(p=>p.classList.toggle('on',p.id==='panel-'+dashPanel));
+  document.getElementById('periodTabs').style.display = dashPanel==='docs' ? 'none' : 'flex';
+  if(dashPanel==='docs') renderDocs();
+});
+
+/* ---------- CUSTOS ---------- */
+function openCost(){
+  costCat='insumo';
+  document.getElementById('eDesc').value=''; document.getElementById('eVal').value='';
+  document.getElementById('eDate').value=ymd(new Date());
+  renderCatChips(); openSheet('costSheet');
+}
+function renderCatChips(){
+  const w=document.getElementById('catChips'); w.innerHTML='';
+  COST_CATS.forEach(c=>{
+    const b=document.createElement('button'); b.className='chip'+(costCat===c.id?' on':'');
+    b.innerHTML=`${c.icon} ${c.name}`;
+    b.onclick=()=>{ costCat=c.id; renderCatChips(); };
+    w.appendChild(b);
+  });
+}
+function saveCost(){
+  const desc=document.getElementById('eDesc').value.trim();
+  const val=parseFloat(document.getElementById('eVal').value.replace(/\./g,'').replace(',','.'));
+  const date=document.getElementById('eDate').value;
+  if(!val||!date){ toast('Preencha valor e data'); return; }
+  const exp={id:'e'+Date.now(),desc,amount:val,date,cat:costCat,createdAt:Date.now()};
+  DB.exps.push(exp); sbErr(sb.from('expenses').insert(rowFromExp(exp)));
+  closeSheet(); renderDash(); toast('Custo lançado ✓');
+}
+
+/* ---------- DOCUMENTOS (Supabase Storage) ---------- */
+function pickDoc(kind){
+  const inp=document.getElementById('docInput');
+  inp.onchange=async()=>{ const f=inp.files[0]; if(!f) return;
+    toast('Enviando…');
+    const id='d'+Date.now(); const path=`${id}_${(f.name||'arquivo').replace(/[^\w.\-]/g,'_')}`;
+    const up=await sb.storage.from('documentos').upload(path,f,{contentType:f.type,upsert:false});
+    if(up.error){ console.error(up.error); toast('Erro no upload'); inp.value=''; return; }
+    const row={id,name:f.name,kind,date:ymd(new Date()),mime:f.type,size:f.size,path,created_at:Date.now()};
+    if(await sbErr(sb.from('documents').insert(row),'Erro ao salvar documento')){
+      DB.docs.unshift(docFromRow(row)); renderDocs(); toast('Documento adicionado ✓');
+    }
+    inp.value=''; };
+  inp.click();
+}
+async function deleteDoc(d){
+  await sb.storage.from('documentos').remove([d.path]);
+  await sbErr(sb.from('documents').delete().eq('id',d.id));
+  DB.docs=DB.docs.filter(x=>x.id!==d.id); renderDocs(); toast('Documento removido');
+}
+function renderDocs(){
+  const grid=document.getElementById('docGrid');
+  const all=DB.docs.filter(d=>docFilter==='all'||d.kind===docFilter);
+  grid.innerHTML='';
+  if(!all.length){ grid.innerHTML='<div class="empty-mini" style="grid-column:1/-1">Nenhum documento ainda.<br>Adicione notas fiscais e comprovantes abaixo.</div>'; return; }
+  all.forEach(d=>{
+    const isImg=(d.mime||'').startsWith('image/');
+    const el=document.createElement('div'); el.className='doc';
+    el.innerHTML=`<div class="thumb">${isImg?`<img src="${d.url}">`:'📄'}</div>
+      <div class="meta"><div class="kn ${d.kind==='comprovante'?'comp':''}">${d.kind==='comprovante'?'Comprovante':'Nota fiscal'}</div>
+      <div class="dn">${(d.name||'documento').replace(/</g,'&lt;')}</div>
+      <div class="dd">${d.date.split('-').reverse().join('/')}</div></div>
+      <button class="rm">✕</button>`;
+    el.querySelector('.thumb').onclick=()=>window.open(d.url,'_blank');
+    el.querySelector('.rm').onclick=(ev)=>{ ev.stopPropagation(); deleteDoc(d); };
+    grid.appendChild(el);
+  });
+}
+document.getElementById('docFilter').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  docFilter=b.dataset.k;
+  document.querySelectorAll('#docFilter button').forEach(x=>x.classList.toggle('on',x===b));
+  renderDocs();
+});
+
+/* ---------- SETTINGS ---------- */
+function openSettings(){
+  const c=store.cfg;
+  document.getElementById('setPin').value=c.pin;
+  document.getElementById('setOpen').value=c.open;
+  document.getElementById('setClose').value=c.close;
+  openSheet('setSheet');
+}
+function saveSettings(){
+  const pin=document.getElementById('setPin').value.replace(/\D/g,'').slice(0,6);
+  const open=document.getElementById('setOpen').value, close=document.getElementById('setClose').value;
+  if(pin.length!==6){ toast('Senha precisa ter 6 dígitos'); return; }
+  store.cfg={pin,open,close}; closeSheet(); renderDateStrip(); renderSlots(); if(dashUnlocked) renderDash();
+  toast('Configurações salvas ✓');
+}
+async function wipeData(){
+  if(!confirm('Apagar TODOS os agendamentos e custos da NUVEM (todos os aparelhos)? Não dá pra desfazer.')) return;
+  await sb.from('appointments').delete().neq('id','');
+  await sb.from('expenses').delete().neq('id','');
+  DB.appts=[]; DB.exps=[];
+  closeSheet(); renderSlots(); renderDateStrip(); if(dashUnlocked) renderDash(); toast('Dados apagados');
+}
+
+/* ---------- NAV + SHEETS ---------- */
+document.querySelectorAll('nav .tab[data-tab]').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('nav .tab[data-tab]').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    const tab=t.dataset.tab; document.getElementById('view-'+tab).classList.add('active');
+    if(tab==='dash'){ if(dashUnlocked) showDash(); else lockDash(); setTimeout(()=>document.querySelector('#pinBox input')?.focus(),200); }
+    window.scrollTo(0,0);
+  };
+});
+function openSheet(id){ document.getElementById('sheetBg').classList.add('open'); document.getElementById(id).classList.add('open'); }
+function closeSheet(){ document.getElementById('sheetBg').classList.remove('open'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open')); }
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+document.getElementById('fPlaca').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase());
+
+/* ---------- SINCRONIZAÇÃO / NUVEM ---------- */
+async function loadAll(){
+  const [ap,ex,dc] = await Promise.all([
+    sb.from('appointments').select('*'),
+    sb.from('expenses').select('*'),
+    sb.from('documents').select('*').order('created_at',{ascending:false}),
+  ]);
+  if(ap.error||ex.error||dc.error){ console.error(ap.error||ex.error||dc.error); toast('Erro ao carregar da nuvem'); return; }
+  DB.appts=(ap.data||[]).map(apptFromRow);
+  DB.exps=(ex.data||[]).map(expFromRow);
+  DB.docs=(dc.data||[]).map(docFromRow);
+  renderDateStrip(); renderSlots(); if(dashUnlocked) renderDash();
+  if(dashPanel==='docs') renderDocs();
+}
+async function reload(table){
+  if(table==='appointments'){ const {data}=await sb.from('appointments').select('*'); DB.appts=(data||[]).map(apptFromRow); renderSlots(); renderDateStrip(); if(dashUnlocked) renderDash(); }
+  else if(table==='expenses'){ const {data}=await sb.from('expenses').select('*'); DB.exps=(data||[]).map(expFromRow); if(dashUnlocked) renderDash(); }
+  else if(table==='documents'){ const {data}=await sb.from('documents').select('*').order('created_at',{ascending:false}); DB.docs=(data||[]).map(docFromRow); if(dashPanel==='docs') renderDocs(); }
+}
+function subscribeRealtime(){
+  sb.channel('nw-sync')
+    .on('postgres_changes',{event:'*',schema:'public',table:'appointments'},()=>reload('appointments'))
+    .on('postgres_changes',{event:'*',schema:'public',table:'expenses'},()=>reload('expenses'))
+    .on('postgres_changes',{event:'*',schema:'public',table:'documents'},()=>reload('documents'))
+    .subscribe();
+}
+
+/* ---------- INIT ---------- */
+setupPin(); renderCatChips(); renderDateStrip(); renderSlots();
+loadAll(); subscribeRealtime();
+</script>
