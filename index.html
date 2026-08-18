@@ -243,7 +243,7 @@
 
   /* ---------- ORDEM DE SERVIÇO / PDF ---------- */
   .os-preview{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#fff;color:#111}
-  #osDoc{display:none;background:#fff;color:#111}
+  #osDoc{position:fixed;left:-10000px;top:0;width:680px;background:#fff;color:#111}
   .os-band{background:#0a0a0a;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:4px solid var(--red)}
   .os-band img{height:34px;width:auto;display:block}
   .os-band .os-tag{color:#fff;font-size:10px;font-weight:800;letter-spacing:.16em;text-align:right;line-height:1.6}
@@ -265,13 +265,6 @@
   .os-sign div{flex:1;border-top:1px solid #bbb;padding-top:7px;font-size:11px;color:#888;text-align:center}
   .os-foot{margin-top:26px;text-align:center;font-size:10.5px;color:#aaa;letter-spacing:.04em}
 
-  @media print{
-    @page{ size:auto; margin:14mm; }
-    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
-    html,body{background:#fff !important;max-width:none !important;margin:0 !important}
-    body>header,body>main,body>nav,.sheet,.sheet-bg,.toast{display:none !important}
-    #osDoc{display:block !important;border:none}
-  }
 </style>
 
 <!-- ===================== HEADER ===================== -->
@@ -391,6 +384,8 @@
   <div class="sheet-body">
     <div class="lb-solo">Serviços</div>
     <div class="svc-grid" id="svcGrid"></div>
+    <div class="lb-solo" style="margin-top:20px">Data</div>
+    <input class="inp" id="fData" type="date" />
     <div class="lb-solo" style="margin-top:20px">Horário</div>
     <div class="timegrid" id="timeGrid"></div>
     <label class="fld" style="margin-top:20px"><span class="lb">Cliente</span>
@@ -451,15 +446,18 @@
   <div class="sheet-head"><h2>Agendamento confirmado ✓</h2><button class="close" onclick="closeSheet()">✕</button></div>
   <div class="sheet-body">
     <div class="os-preview" id="osPreview"></div>
-    <button class="btn" style="margin-top:16px" onclick="printCurrentOS()">⬇︎ Salvar / imprimir PDF</button>
+    <button class="btn" id="shareBtn" style="margin-top:16px" onclick="shareOS()">📲 Compartilhar no WhatsApp</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="downloadPDF()">⬇︎ Baixar PDF</button>
     <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Concluir</button>
-    <div class="swatch-note">No celular: toque em <b>Salvar/Imprimir</b> → "Salvar em PDF" ou compartilhe direto no WhatsApp.</div>
+    <div class="swatch-note">"Compartilhar" abre o WhatsApp com a Ordem de Serviço pronta pra enviar ao cliente.</div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
 /* ===== Supabase (nuvem) ===== */
 const SB_URL='https://dgfoojpcgywrkhfqlfxd.supabase.co';
@@ -578,11 +576,16 @@ function renderSlots(){
 
 /* ---------- BOOKING ---------- */
 function openBooking(preTime=null){
-  bookState = { services:[], time:preTime };
+  bookState = { services:[], time:preTime, date:ymd(selDate) };
+  document.getElementById('fData').value = bookState.date;
   document.getElementById('fCliente').value=''; document.getElementById('fPlaca').value='';
   document.getElementById('fTel').value=''; document.getElementById('fObs').value='';
   renderSvcGrid(); renderTimeGrid(); updateBookTotal(); openSheet('bookSheet');
 }
+document.getElementById('fData').addEventListener('change',e=>{
+  bookState.date = e.target.value || ymd(selDate);
+  bookState.time = null; renderTimeGrid();
+});
 function renderSvcGrid(){
   const g = document.getElementById('svcGrid'); g.innerHTML='';
   SERVICES.forEach(s=>{
@@ -604,7 +607,7 @@ function renderSvcGrid(){
 }
 function renderTimeGrid(){
   const g = document.getElementById('timeGrid'); g.innerHTML='';
-  const counts={}; apptsFor(ymd(selDate)).forEach(a=>counts[a.time]=(counts[a.time]||0)+1);
+  const counts={}; apptsFor(bookState.date||ymd(selDate)).forEach(a=>counts[a.time]=(counts[a.time]||0)+1);
   timeSlots().forEach(t=>{
     const b = document.createElement('button'); const busy=counts[t]||0;
     b.className='tslot'+(bookState.time===t?' on':'')+(busy?' busy':'');
@@ -623,15 +626,16 @@ function saveBooking(){
   const appt = {
     id:'a'+Date.now()+Math.random().toString(36).slice(2,6),
     osNum:getNextOs(),
-    date:ymd(selDate), time:bookState.time, services:[...bookState.services],
+    date:bookState.date||ymd(selDate), time:bookState.time, services:[...bookState.services],
     customer:document.getElementById('fCliente').value.trim(),
     plate:document.getElementById('fPlaca').value.trim().toUpperCase(),
     phone:document.getElementById('fTel').value.trim(),
     obs:document.getElementById('fObs').value.trim(),
     status:'scheduled', createdAt:Date.now(),
   };
-  DB.appts.push(appt);
+  DB.appts.push(appt); markOwn(appt.id);
   sbErr(sb.from('appointments').insert(rowFromAppt(appt)));
+  selDate = new Date(appt.date+'T12:00:00');
   closeSheet(); renderSlots(); renderDateStrip(); showBookingSuccess(appt);
 }
 
@@ -659,18 +663,49 @@ function buildOSHtml(a){
     <div class="os-foot">NEW WASH EXPRESS · Lavagem premium · Agradecemos a preferência</div>
   </div>`;
 }
-let curOSId=null;
+let curOSId=null, curOSNum=null;
 function showBookingSuccess(a){
-  curOSId=a.id; const html=buildOSHtml(a);
+  curOSId=a.id; curOSNum=a.osNum||''; const html=buildOSHtml(a);
   document.getElementById('osPreview').innerHTML=html;
   document.getElementById('osDoc').innerHTML=html;
   openSheet('okSheet');
 }
-function printCurrentOS(){ printOS(curOSId); }
 function printOS(id){
-  const a=store.appts.find(x=>x.id===id); if(!a) return;
-  document.getElementById('osDoc').innerHTML=buildOSHtml(a);
-  setTimeout(()=>window.print(),150);
+  const a=DB.appts.find(x=>x.id===id); if(!a) return;
+  closeSheet(); showBookingSuccess(a);
+}
+// gera um canvas do documento (aguarda imagens carregarem)
+async function renderOSCanvas(){
+  const el=document.getElementById('osDoc');
+  await Promise.all([...el.querySelectorAll('img')].map(img=> img.complete?0:new Promise(r=>{img.onload=img.onerror=r;})));
+  return await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,width:680,windowWidth:680});
+}
+async function shareOS(){
+  const btn=document.getElementById('shareBtn'); btn.disabled=true; toast('Gerando OS…');
+  try{
+    const canvas=await renderOSCanvas();
+    const blob=await new Promise(r=>canvas.toBlob(r,'image/png',0.95));
+    const file=new File([blob],`OS-${curOSNum}.png`,{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:`Ordem de Serviço ${curOSNum}`, text:'New Wash Express — Ordem de Serviço'});
+    }else{
+      const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=file.name; a.click(); URL.revokeObjectURL(url);
+      toast('Imagem da OS salva ✓');
+    }
+  }catch(e){ if(e && e.name!=='AbortError'){ console.error(e); toast('Não foi possível gerar'); } }
+  btn.disabled=false;
+}
+async function downloadPDF(){
+  toast('Gerando PDF…');
+  try{
+    const canvas=await renderOSCanvas();
+    const img=canvas.toDataURL('image/png');
+    const { jsPDF }=window.jspdf; const pdf=new jsPDF({unit:'pt',format:'a4'});
+    const pw=pdf.internal.pageSize.getWidth(); const m=28;
+    const w=pw-m*2; const h=canvas.height*(w/canvas.width);
+    pdf.addImage(img,'PNG',m,m,w,h);
+    pdf.save(`OS-${curOSNum}.pdf`);
+  }catch(e){ console.error(e); toast('Não foi possível gerar o PDF'); }
 }
 
 /* ---------- APPT DETAIL ---------- */
@@ -687,7 +722,7 @@ function openApptDetail(id){
     </div>
     <div class="svc-grid" style="margin-top:16px">${svc}</div>${obs}
     <div class="total-bar"><span class="l">Total</span><span class="v mono">${money(apptTotal(a))}</span></div>
-    <button class="btn ghost" style="margin-bottom:10px" onclick="printOS('${a.id}')">⬇︎ Gerar orçamento / OS (PDF)</button>
+    <button class="btn ghost" style="margin-bottom:10px" onclick="printOS('${a.id}')">📲 Ver / compartilhar OS (PDF)</button>
     ${a.status==='done'
       ? `<button class="btn ghost" onclick="setApptStatus('scheduled')">↩︎ Reabrir agendamento</button>`
       : `<button class="btn" onclick="setApptStatus('done')">✓ Marcar como concluído</button>`}
@@ -697,7 +732,7 @@ function openApptDetail(id){
 }
 function setApptStatus(st){
   const a=DB.appts.find(x=>x.id===curAppt.id);
-  a.status=st; a.doneAt=(st==='done')?Date.now():null;
+  a.status=st; a.doneAt=(st==='done')?Date.now():null; markOwn(a.id);
   sbErr(sb.from('appointments').update({status:a.status,done_at:a.doneAt}).eq('id',a.id));
   closeSheet(); renderSlots(); toast(st==='done'?'Lavagem concluída ✓':'Agendamento reaberto');
 }
@@ -963,9 +998,34 @@ async function reload(table){
   else if(table==='expenses'){ const {data}=await sb.from('expenses').select('*'); DB.exps=(data||[]).map(expFromRow); if(dashUnlocked) renderDash(); }
   else if(table==='documents'){ const {data}=await sb.from('documents').select('*').order('created_at',{ascending:false}); DB.docs=(data||[]).map(docFromRow); if(dashPanel==='docs') renderDocs(); }
 }
+/* ---------- NOTIFICAÇÕES ---------- */
+const ownChanges = new Set();
+function markOwn(id){ ownChanges.add(id); setTimeout(()=>ownChanges.delete(id), 10000); }
+let notifAsked=false;
+function ensureNotifPermission(){
+  if(notifAsked) return; notifAsked=true;
+  try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission().catch(()=>{}); }catch(e){}
+}
+document.addEventListener('click', ensureNotifPermission, {once:true});
+function notify(title, body){
+  try{ if('Notification' in window && Notification.permission==='granted') new Notification(title,{body, icon:'assets/icon-192.png', badge:'assets/icon-192.png'}); }catch(e){}
+  toast(title);
+}
+function onApptInsert(row){
+  if(!row || ownChanges.has(row.id)) return;
+  const d=(row.date||'').split('-').reverse().join('/');
+  notify('🚗 Novo agendamento', `${row.customer||'Cliente'} — ${d} às ${row.time}`);
+}
+function onApptUpdate(row, old){
+  if(!row || ownChanges.has(row.id)) return;
+  if(row.status==='done' && (!old || old.status!=='done'))
+    notify('✅ Lavagem concluída', `${row.customer||'Cliente'} — recebido ${money(apptTotal(row))}`);
+}
 function subscribeRealtime(){
   sb.channel('nw-sync')
-    .on('postgres_changes',{event:'*',schema:'public',table:'appointments'},()=>reload('appointments'))
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'appointments'},p=>{ onApptInsert(p.new); reload('appointments'); })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'appointments'},p=>{ onApptUpdate(p.new,p.old); reload('appointments'); })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'appointments'},()=>reload('appointments'))
     .on('postgres_changes',{event:'*',schema:'public',table:'expenses'},()=>reload('expenses'))
     .on('postgres_changes',{event:'*',schema:'public',table:'documents'},()=>reload('documents'))
     .subscribe();
