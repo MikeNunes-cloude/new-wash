@@ -434,6 +434,7 @@
       <label class="fld"><span class="lb">Fechamento</span><input class="inp" id="setClose" type="time" /></label>
     </div>
     <button class="btn" onclick="saveSettings()">Salvar configurações</button>
+    <button class="btn ghost" onclick="subscribePush(false)" style="margin-top:12px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg> Ativar notificações neste aparelho</button>
     <div class="mgr-actions"><button class="btn danger" onclick="wipeData()">Apagar todos os dados</button></div>
     <div class="swatch-note">Protótipo local — dados e documentos ficam neste aparelho. Próxima fase: nuvem (Supabase) pra sincronizar todos os celulares e guardar os arquivos.</div>
   </div>
@@ -1027,15 +1028,35 @@ async function reload(table){
 /* ---------- NOTIFICAÇÕES ---------- */
 const ownChanges = new Set();
 function markOwn(id){ ownChanges.add(id); setTimeout(()=>ownChanges.delete(id), 10000); }
-let notifAsked=false;
-function ensureNotifPermission(){
-  if(notifAsked) return; notifAsked=true;
-  try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission().catch(()=>{}); }catch(e){}
+// feedback imediato quando o app está aberto (o push cobre com o app fechado)
+function notify(title, body){ toast(title + (body ? ' — ' + body : '')); }
+
+/* ----- PUSH: notificação no celular mesmo com o app fechado ----- */
+const VAPID_PUBLIC = 'BIJhYOFXInBjd_s1mj67paWRWPFtch0OAsG92PbUkjTypUBxmv-QThdaCawOrmbaoSSPM2-MlskyCrQx8c-rJ3w';
+function urlB64ToUint8(b){ const pad='='.repeat((4-b.length%4)%4); const s=(b+pad).replace(/-/g,'+').replace(/_/g,'/'); const raw=atob(s); return Uint8Array.from([...raw].map(c=>c.charCodeAt(0))); }
+function deviceId(){ let id=localStorage.getItem('nw_device'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('nw_device',id); } return id; }
+let swReg=null;
+async function initServiceWorker(){
+  if(!('serviceWorker' in navigator)) return;
+  try{ swReg = await navigator.serviceWorker.register('sw.js');
+    if('Notification' in window && Notification.permission==='granted') subscribePush(true);
+  }catch(e){ console.error('SW', e); }
 }
-document.addEventListener('click', ensureNotifPermission, {once:true});
-function notify(title, body){
-  try{ if('Notification' in window && Notification.permission==='granted') new Notification(title,{body, icon:'assets/icon-192.png', badge:'assets/icon-192.png'}); }catch(e){}
-  toast(title);
+async function subscribePush(silent){
+  try{
+    const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    const standalone=window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    if(isIOS && !standalone){ if(!silent) toast('No iPhone: instale o app na tela inicial e ative por lá'); return; }
+    if(!('serviceWorker' in navigator) || !('PushManager' in window)){ if(!silent) toast('Push não suportado neste aparelho'); return; }
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){ if(!silent) toast('Permissão negada'); return; }
+    const reg=swReg || await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:urlB64ToUint8(VAPID_PUBLIC) });
+    const j=sub.toJSON();
+    await sb.from('push_subscriptions').upsert({ id:deviceId(), endpoint:sub.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth, created_at:Date.now() });
+    if(!silent) toast('Notificações ativadas ✓');
+  }catch(e){ console.error('push', e); if(!silent) toast('Não foi possível ativar'); }
 }
 function onApptInsert(row){
   if(!row || ownChanges.has(row.id)) return;
@@ -1059,5 +1080,5 @@ function subscribeRealtime(){
 
 /* ---------- INIT ---------- */
 setupPin(); renderCatChips(); renderDateStrip(); renderSlots();
-loadAll(); subscribeRealtime();
+loadAll(); subscribeRealtime(); initServiceWorker();
 </script>
