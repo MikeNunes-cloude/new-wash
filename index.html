@@ -25,6 +25,8 @@
   input,select,textarea{font-family:inherit}
   h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.02em}
   .mono{font-variant-numeric:tabular-nums}
+  .svgic{flex:none;vertical-align:middle}
+  .cat-card .ci{line-height:0}
 
   header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#0a0a0a 60%,rgba(10,10,10,.85));
     padding:calc(var(--safe-top) + 16px) 20px 14px;backdrop-filter:blur(10px);
@@ -287,7 +289,7 @@
   <!-- ===================== DIRETORIA ===================== -->
   <section class="view" id="view-dash">
     <div id="dashLock" class="lock">
-      <div class="ic">🔒</div>
+      <div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg></div>
       <h2>Painel dos diretores</h2>
       <p>Área restrita. Digite a senha de acesso para ver faturamento, custos e documentos.</p>
       <div class="pin" id="pinBox">
@@ -334,7 +336,7 @@
         <div class="cat-summary" id="catSummary"></div>
         <div class="section-title" style="margin-top:6px">Lançamentos</div>
         <div id="expList"></div>
-        <div class="mgr-actions"><button class="btn" onclick="openCost()">＋ Novo custo</button></div>
+        <div class="mgr-actions"><button class="btn" onclick="openCost()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Novo custo</button></div>
       </div>
 
       <!-- PANEL: DOCUMENTOS -->
@@ -346,15 +348,15 @@
         </div>
         <div class="doc-grid" id="docGrid"></div>
         <div class="doc-add">
-          <button class="btn ghost" onclick="pickDoc('nota')">🧾 Nota fiscal</button>
-          <button class="btn ghost" onclick="pickDoc('comprovante')">💳 Comprovante</button>
+          <button class="btn ghost" onclick="pickDoc('nota')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5h12v19l-2.5-1.6-2.5 1.6-2.5-1.6-2.5 1.6-2.5-1.6z"/><path d="M9 7h6"/><path d="M9 11h6"/><path d="M9 15h4"/></svg> Nota fiscal</button>
+          <button class="btn ghost" onclick="pickDoc('comprovante')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2"/><path d="M2.5 10h19"/><path d="M6 14.5h4"/></svg> Comprovante</button>
         </div>
         <input type="file" id="docInput" accept="image/*,application/pdf" hidden />
       </div>
 
       <div class="mgr-actions">
         <button class="btn danger" onclick="lockDash()">Sair do painel</button>
-        <button class="btn ghost" onclick="openSettings()">⚙︎ Configurar</button>
+        <button class="btn ghost" onclick="openSettings()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a1.9 1.9 0 0 1-3.8 0v-.1A1.6 1.6 0 0 0 7 19.7l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1A1.6 1.6 0 0 0 3.2 14H3a1.9 1.9 0 0 1 0-3.8h.1A1.6 1.6 0 0 0 4.3 7l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1A1.6 1.6 0 0 0 10 4.3V4a1.9 1.9 0 0 1 3.8 0v.1A1.6 1.6 0 0 0 16.9 5l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0-1.1 2.7H21a1.9 1.9 0 0 1 0 3.8h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg> Configurar</button>
       </div>
     </div>
   </section>
@@ -446,8 +448,8 @@
   <div class="sheet-head"><h2>Agendamento confirmado ✓</h2><button class="close" onclick="closeSheet()">✕</button></div>
   <div class="sheet-body">
     <div class="os-preview" id="osPreview"></div>
-    <button class="btn" id="shareBtn" style="margin-top:16px" onclick="shareOS()">📲 Compartilhar no WhatsApp</button>
-    <button class="btn ghost" style="margin-top:10px" onclick="downloadPDF()">⬇︎ Baixar PDF</button>
+    <button class="btn" id="shareBtn" style="margin-top:16px" onclick="shareOS()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M12 15.5V3.5"/><path d="M8 7.5l4-4 4 4"/></svg> Compartilhar no WhatsApp</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="downloadPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M12 3.5v12"/><path d="M8 11.5l4 4 4-4"/></svg> Baixar PDF</button>
     <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Concluir</button>
     <div class="swatch-note">"Compartilhar" abre o WhatsApp com a Ordem de Serviço pronta pra enviar ao cliente.</div>
   </div>
@@ -467,20 +469,44 @@ const sb = window.supabase.createClient(SB_URL, SB_KEY);
    NEW WASH EXPRESS — gestão (protótipo local)
    ============================================================ */
 const SERVICES = [
-  {id:'hatch',  name:'Lavagem simples — Hatch',       desc:'Carro pequeno',        price:65, icon:'🚗', main:true},
-  {id:'sedan',  name:'Lavagem simples — Sedan / SUV', desc:'Carro médio / SUV',    price:75, icon:'🚙', main:true},
-  {id:'camion', name:'Lavagem simples — Camionete',   desc:'Picape / caminhonete', price:95, icon:'🛻', main:true},
-  {id:'cera',   name:'Cera líquida',                  desc:'Adicional de proteção',price:35, icon:'✨', main:false},
+  {id:'hatch',  name:'Lavagem simples — Hatch',       desc:'Carro pequeno',        price:65, icon:'car',   main:true},
+  {id:'sedan',  name:'Lavagem simples — Sedan / SUV', desc:'Carro médio / SUV',    price:75, icon:'car',   main:true},
+  {id:'camion', name:'Lavagem simples — Camionete',   desc:'Picape / caminhonete', price:95, icon:'truck', main:true},
+  {id:'cera',   name:'Cera líquida',                  desc:'Adicional de proteção',price:35, icon:'drop',  main:false},
 ];
 const COST_CATS = [
-  {id:'insumo',  name:'Insumos',     icon:'🧴'},
-  {id:'salario', name:'Salários',    icon:'👷'},
-  {id:'aluguel', name:'Aluguel',     icon:'🏠'},
-  {id:'agua_luz',name:'Água / Luz',  icon:'💡'},
-  {id:'manut',   name:'Manutenção',  icon:'🔧'},
-  {id:'outros',  name:'Outros',      icon:'📦'},
+  {id:'insumo',  name:'Insumos',     icon:'flask'},
+  {id:'salario', name:'Salários',    icon:'wallet'},
+  {id:'aluguel', name:'Aluguel',     icon:'home'},
+  {id:'agua_luz',name:'Água / Luz',  icon:'zap'},
+  {id:'manut',   name:'Manutenção',  icon:'wrench'},
+  {id:'outros',  name:'Outros',      icon:'box'},
 ];
 const DEFAULTS = { pin:'177042', open:'08:00', close:'18:00' };
+
+/* ---------- ÍCONES VETORIAIS (SVG, traço fino) ---------- */
+const ICONS = {
+  car:'<path d="M3 12l1.8-5A2.5 2.5 0 0 1 7.2 5.3h9.6a2.5 2.5 0 0 1 2.4 1.7L21 12"/><path d="M3 12h18v4.5a1 1 0 0 1-1 1h-1.4"/><path d="M6.4 17.5H4a1 1 0 0 1-1-1V12"/><circle cx="7" cy="17.4" r="1.7"/><circle cx="17" cy="17.4" r="1.7"/><path d="M8.7 17.4h6.6"/>',
+  truck:'<path d="M3 6.5h11v9.5H3z"/><path d="M14 9.5h3.4l3 3.2V16H14z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17.5" cy="17.5" r="1.6"/><path d="M8.6 17.5h7.3"/>',
+  drop:'<path d="M12 3.6s5.5 6 5.5 9.9A5.5 5.5 0 0 1 6.5 13.5C6.5 9.6 12 3.6 12 3.6z"/>',
+  flask:'<path d="M9 3.2h6"/><path d="M10 3.2v6L5.6 17.4A2 2 0 0 0 7.4 20.4h9.2a2 2 0 0 0 1.8-3L14 9.2v-6"/><path d="M8 14.2h8"/>',
+  wallet:'<path d="M4 7a2 2 0 0 1 2-2h11v3.5"/><path d="M4 7v10a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H6a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="13" r="1.1"/>',
+  home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9.5 20v-6h5v6"/>',
+  zap:'<path d="M13 2.5L4 14h7l-1 7.5L20 10h-7z"/>',
+  wrench:'<path d="M14.6 6.4a4 4 0 0 0-5.3 5.1L3.6 17.2l3.2 3.2 5.7-5.7a4 4 0 0 0 5.1-5.3l-2.6 2.6-2.3-2.3z"/>',
+  box:'<path d="M21 8.5l-9-5-9 5 9 5z"/><path d="M3 8.5V16l9 5 9-5V8.5"/><path d="M12 13.5V21"/>',
+  lock:'<rect x="4.5" y="10.5" width="15" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
+  receipt:'<path d="M6 2.5h12v19l-2.5-1.6-2.5 1.6-2.5-1.6-2.5 1.6-2.5-1.6z"/><path d="M9 7h6"/><path d="M9 11h6"/><path d="M9 15h4"/>',
+  card:'<rect x="2.5" y="5.5" width="19" height="13" rx="2"/><path d="M2.5 10h19"/><path d="M6 14.5h4"/>',
+  file:'<path d="M14 2.5H7A2 2 0 0 0 5 4.5v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5z"/><path d="M14 2.5v5h5"/>',
+  share:'<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M12 15.5V3.5"/><path d="M8 7.5l4-4 4 4"/>',
+  download:'<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M12 3.5v12"/><path d="M8 11.5l4 4 4-4"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a1.9 1.9 0 0 1-3.8 0v-.1A1.6 1.6 0 0 0 7 19.7l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1A1.6 1.6 0 0 0 3.2 14H3a1.9 1.9 0 0 1 0-3.8h.1A1.6 1.6 0 0 0 4.3 7l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1A1.6 1.6 0 0 0 10 4.3V4a1.9 1.9 0 0 1 3.8 0v.1A1.6 1.6 0 0 0 16.9 5l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0-1.1 2.7H21a1.9 1.9 0 0 1 0 3.8h-.1a1.6 1.6 0 0 0-1.5 1z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  check:'<path d="M20 6.5L9 17.5l-5-5"/>',
+  undo:'<path d="M3 8v5h5"/><path d="M4 13a8.5 8.5 0 1 1 1.8 6"/>',
+};
+function svg(name, s){ s=s||20; return `<svg class="svgic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`; }
 
 let DB = { appts:[], exps:[], docs:[] };
 const store = {
@@ -541,7 +567,7 @@ function timeSlots(){
 const apptsFor = ds => store.appts.filter(a=>a.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
 const svcById = id => SERVICES.find(s=>s.id===id);
 const apptTotal = a => a.services.reduce((s,id)=>s+(svcById(id)?.price||0),0);
-const apptVehIcon = a => { const m=a.services.map(svcById).find(s=>s&&s.main); return m?m.icon:'✨'; };
+const apptVehIcon = a => { const m=a.services.map(svcById).find(s=>s&&s.main); return m?m.icon:'drop'; };
 const apptSvcNames = a => a.services.map(id=>svcById(id)?.name.replace('Lavagem simples — ','').replace(' líquida','')).join(' + ');
 
 function renderSlots(){
@@ -560,7 +586,7 @@ function renderSlots(){
     }else{
       const cards = items.map(a=>`
         <div class="appt ${a.status==='done'?'done':''}" data-id="${a.id}">
-          <div class="veh">${apptVehIcon(a)}</div>
+          <div class="veh">${svg(apptVehIcon(a),18)}</div>
           <div class="info"><div class="nm">${a.customer||'Sem nome'}</div>
             <div class="sv">${apptSvcNames(a)}${a.plate?' · '+a.plate:''}</div></div>
           <div class="rgt"><div class="val mono">${money(apptTotal(a))}</div>
@@ -591,7 +617,7 @@ function renderSvcGrid(){
   SERVICES.forEach(s=>{
     const on = bookState.services.includes(s.id);
     const el = document.createElement('div'); el.className = 'svc'+(on?' on':'');
-    el.innerHTML = `<div class="ico">${s.icon}</div>
+    el.innerHTML = `<div class="ico">${svg(s.icon,22)}</div>
       <div class="t"><div class="n">${s.name}</div><div class="d">${s.desc}</div></div>
       <div class="p-wrap"><div class="p mono">${money(s.price)}</div></div>
       <div class="chk"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>`;
@@ -712,20 +738,20 @@ async function downloadPDF(){
 let curAppt = null;
 function openApptDetail(id){
   const a = store.appts.find(x=>x.id===id); if(!a) return; curAppt=a;
-  const svc = a.services.map(id=>{const s=svcById(id);return `<div class="svc" style="pointer-events:none"><div class="ico">${s.icon}</div><div class="t"><div class="n">${s.name}</div></div><div class="p mono">${money(s.price)}</div></div>`}).join('');
+  const svc = a.services.map(id=>{const s=svcById(id);return `<div class="svc" style="pointer-events:none"><div class="ico">${svg(s.icon,18)}</div><div class="t"><div class="n">${s.name}</div></div><div class="p mono">${money(s.price)}</div></div>`}).join('');
   const obs = a.obs ? `<div style="background:var(--black);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:14px"><div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;letter-spacing:.05em">OBSERVAÇÕES</div><div style="font-size:14px;line-height:1.45">${a.obs.replace(/</g,'&lt;')}</div></div>` : '';
   document.getElementById('apptBody').innerHTML = `
     <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px">
-      <div class="veh" style="width:48px;height:48px;font-size:22px;border-radius:14px;background:var(--surface-2);display:flex;align-items:center;justify-content:center">${apptVehIcon(a)}</div>
+      <div class="veh" style="width:48px;height:48px;border-radius:14px;background:var(--surface-2);display:flex;align-items:center;justify-content:center">${svg(apptVehIcon(a),24)}</div>
       <div><div style="font-weight:800;font-size:18px">${a.customer||'Sem nome'}</div>
       <div style="color:var(--muted);font-size:13px;margin-top:2px">${a.date.split('-').reverse().join('/')} · ${a.time}${a.plate?' · '+a.plate:''}${a.phone?' · '+a.phone:''}</div></div>
     </div>
     <div class="svc-grid" style="margin-top:16px">${svc}</div>${obs}
     <div class="total-bar"><span class="l">Total</span><span class="v mono">${money(apptTotal(a))}</span></div>
-    <button class="btn ghost" style="margin-bottom:10px" onclick="printOS('${a.id}')">📲 Ver / compartilhar OS (PDF)</button>
+    <button class="btn ghost" style="margin-bottom:10px" onclick="printOS('${a.id}')">${svg('share',18)} Ver / compartilhar OS</button>
     ${a.status==='done'
-      ? `<button class="btn ghost" onclick="setApptStatus('scheduled')">↩︎ Reabrir agendamento</button>`
-      : `<button class="btn" onclick="setApptStatus('done')">✓ Marcar como concluído</button>`}
+      ? `<button class="btn ghost" onclick="setApptStatus('scheduled')">${svg('undo',18)} Reabrir agendamento</button>`
+      : `<button class="btn" onclick="setApptStatus('done')">${svg('check',18)} Marcar como concluído</button>`}
     <div class="mgr-actions"><button class="btn danger" onclick="deleteAppt()">Cancelar agendamento</button></div>`;
   document.getElementById('adTitle').textContent = a.status==='done'?'Lavagem concluída':'Agendamento';
   openSheet('apptSheet');
@@ -837,7 +863,7 @@ function renderCustos(exps){
   exps.forEach(e=>{ totals[e.cat!=null?e.cat:'outros']=(totals[e.cat!=null?e.cat:'outros']||0)+Number(e.amount); });
   COST_CATS.forEach(c=>{
     const card=document.createElement('div'); card.className='cat-card';
-    card.innerHTML=`<div class="ci">${c.icon}</div><div class="cn">${c.name}</div><div class="cv mono">${money(totals[c.id]||0)}</div>`;
+    card.innerHTML=`<div class="ci">${svg(c.icon,18)}</div><div class="cn">${c.name}</div><div class="cv mono">${money(totals[c.id]||0)}</div>`;
     cs.appendChild(card);
   });
   // list
@@ -846,7 +872,7 @@ function renderCustos(exps){
   exps.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{
     const c=catById(e.cat);
     const row=document.createElement('div'); row.className='exp-row';
-    row.innerHTML=`<div class="ei">${c.icon}</div><div class="ed"><div class="en">${(e.desc||c.name).replace(/</g,'&lt;')}</div>
+    row.innerHTML=`<div class="ei">${svg(c.icon,17)}</div><div class="ed"><div class="en">${(e.desc||c.name).replace(/</g,'&lt;')}</div>
       <div class="edt">${c.name} · ${e.date.split('-').reverse().join('/')}</div></div>
       <div class="ev mono">− ${money2(e.amount)}</div><button class="del">✕</button>`;
     row.querySelector('.del').onclick=()=>{ DB.exps=DB.exps.filter(x=>x.id!==e.id); sbErr(sb.from('expenses').delete().eq('id',e.id)); renderDash(); toast('Custo removido'); };
@@ -879,7 +905,7 @@ function renderCatChips(){
   const w=document.getElementById('catChips'); w.innerHTML='';
   COST_CATS.forEach(c=>{
     const b=document.createElement('button'); b.className='chip'+(costCat===c.id?' on':'');
-    b.innerHTML=`${c.icon} ${c.name}`;
+    b.innerHTML=`${svg(c.icon,16)} <span>${c.name}</span>`;
     b.onclick=()=>{ costCat=c.id; renderCatChips(); };
     w.appendChild(b);
   });
@@ -922,7 +948,7 @@ function renderDocs(){
   all.forEach(d=>{
     const isImg=(d.mime||'').startsWith('image/');
     const el=document.createElement('div'); el.className='doc';
-    el.innerHTML=`<div class="thumb">${isImg?`<img src="${d.url}">`:'📄'}</div>
+    el.innerHTML=`<div class="thumb">${isImg?`<img src="${d.url}">`:svg('file',34)}</div>
       <div class="meta"><div class="kn ${d.kind==='comprovante'?'comp':''}">${d.kind==='comprovante'?'Comprovante':'Nota fiscal'}</div>
       <div class="dn">${(d.name||'documento').replace(/</g,'&lt;')}</div>
       <div class="dd">${d.date.split('-').reverse().join('/')}</div></div>
@@ -1014,12 +1040,12 @@ function notify(title, body){
 function onApptInsert(row){
   if(!row || ownChanges.has(row.id)) return;
   const d=(row.date||'').split('-').reverse().join('/');
-  notify('🚗 Novo agendamento', `${row.customer||'Cliente'} — ${d} às ${row.time}`);
+  notify('Novo agendamento', `${row.customer||'Cliente'} — ${d} às ${row.time}`);
 }
 function onApptUpdate(row, old){
   if(!row || ownChanges.has(row.id)) return;
   if(row.status==='done' && (!old || old.status!=='done'))
-    notify('✅ Lavagem concluída', `${row.customer||'Cliente'} — recebido ${money(apptTotal(row))}`);
+    notify('Lavagem concluída', `${row.customer||'Cliente'} — recebido ${money(apptTotal(row))}`);
 }
 function subscribeRealtime(){
   sb.channel('nw-sync')
