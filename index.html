@@ -243,6 +243,80 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .swatch-note{font-size:11px;color:var(--muted-2);text-align:center;padding:18px 20px 4px;line-height:1.5}
 
+  /* ---------- TELA INICIAL (splash) ---------- */
+  .splash{position:fixed;inset:0;z-index:100;background:var(--black);
+    display:flex;flex-direction:column;overflow:hidden;transition:opacity .45s ease,visibility .45s}
+  .splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+  .splash-bg{position:absolute;inset:0}
+  .splash-bg img{width:100%;height:100%;object-fit:cover;object-position:center 70%}
+  .splash-bg::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(10,10,10,.93) 0%,rgba(10,10,10,.80) 38%,rgba(10,10,10,.99) 78%)}
+  .splash-in{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;
+    padding:calc(var(--safe-top) + 54px) 30px calc(var(--safe-bottom) + 30px);max-width:520px;margin:0 auto;width:100%}
+  .splash-logo img{width:190px;max-width:62vw;height:auto;display:block}
+  .splash-mid{flex:1;display:flex;flex-direction:column;justify-content:center;padding:28px 0}
+  .splash-accent{width:44px;height:3px;background:var(--red);border-radius:2px;margin-bottom:22px}
+  .splash-verse{font-size:clamp(21px,5.6vw,27px);font-weight:700;line-height:1.34;
+    letter-spacing:-.02em;color:#fff;margin:0}
+  .splash-verse .q{color:var(--red-soft)}
+  .splash-ref{margin-top:16px;font-size:12.5px;font-weight:800;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--muted)}
+  .splash-foot{display:flex;flex-direction:column;gap:14px}
+  .splash-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+    padding:19px;border-radius:50px;background:var(--red);color:#fff;font-size:16.5px;font-weight:800;
+    letter-spacing:.01em;box-shadow:0 10px 34px -8px rgba(193,18,31,.85);transition:.18s}
+  .splash-btn:active{transform:scale(.975)}
+  .splash-date{text-align:center;font-size:11.5px;color:var(--muted-2);letter-spacing:.05em;font-weight:600}
+
+  /* ---------- RESUMO DO DIA (operacional, sem valores) ---------- */
+  .daybox{background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    padding:17px 18px;margin:4px 0 6px}
+  .daybox-top{display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
+  .daybox .lbl{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .daybox .big{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1;margin-top:7px}
+  .daybox .big small{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0;margin-left:7px}
+  .daybox .pend{text-align:right;font-size:12.5px;color:var(--muted);font-weight:600;line-height:1.5}
+  .daybox .pend b{display:block;font-size:20px;color:#fff;font-weight:800}
+  .bymodel{display:flex;gap:8px;margin-top:15px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .bym{flex:1;min-width:64px;background:var(--black);border:1px solid var(--line);border-radius:12px;
+    padding:10px 8px;text-align:center}
+  .bym .ic{color:var(--muted);line-height:0;margin-bottom:6px}
+  .bym .n{font-size:19px;font-weight:800;line-height:1}
+  .bym .t{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:.03em}
+  .bym.on .ic{color:var(--red-soft)}
+  .bym.on .n{color:#fff}
+  .meta-bar{height:6px;border-radius:4px;background:var(--surface-2);margin-top:14px;overflow:hidden}
+  .meta-bar span{display:block;height:100%;border-radius:4px;
+    background:linear-gradient(90deg,var(--bordo),var(--red-soft));transition:width .6s cubic-bezier(.2,.7,.3,1)}
+  .meta-bar span.full{background:linear-gradient(90deg,#c8a227,#ffd75e)}
+  .meta-txt{font-size:12px;color:var(--muted);margin-top:9px;font-weight:600}
+  .meta-txt b{color:#fff}
+  .meta-txt.ok{color:#ffd75e}
+  .meta-txt .gold{color:#ffd75e;font-weight:800}
+
+  /* ---------- META BATIDA (comemoração) ---------- */
+  .party{position:fixed;inset:0;z-index:110;background:rgba(6,6,6,.93);backdrop-filter:blur(7px);
+    display:flex;align-items:center;justify-content:center;padding:26px;
+    opacity:0;visibility:hidden;transition:.35s}
+  .party.show{opacity:1;visibility:visible}
+  .party-card{position:relative;z-index:2;text-align:center;max-width:340px;width:100%;
+    animation:pop .55s cubic-bezier(.18,.9,.3,1.2)}
+  @keyframes pop{0%{transform:scale(.8) translateY(18px);opacity:0}100%{transform:none;opacity:1}}
+  .party-badge{width:78px;height:78px;border-radius:50%;margin:0 auto 20px;
+    background:linear-gradient(145deg,#c8a227,#8a6a10);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 0 8px rgba(200,162,39,.13),0 14px 40px -10px rgba(200,162,39,.7)}
+  .party-num{font-size:66px;font-weight:800;letter-spacing:-.05em;line-height:1;
+    background:linear-gradient(180deg,#ffe08a,#c8a227);-webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;margin-bottom:6px}
+  .party-card h2{font-size:27px;margin-bottom:11px}
+  .party-card p{font-size:15px;color:var(--muted);line-height:1.6;margin:0}
+  .party-card p b{color:#ffd75e}
+  .confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+  .confetti i{position:absolute;top:-14px;width:9px;height:14px;opacity:.95;
+    animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(105vh) rotate(680deg);opacity:0}}
+
   /* ---------- ORDEM DE SERVIÇO / PDF ---------- */
   .os-preview{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#fff;color:#111}
   #osDoc{position:fixed;left:-10000px;top:0;width:680px;background:#fff;color:#111}
@@ -282,6 +356,7 @@
   <!-- ===================== AGENDA ===================== -->
   <section class="view active" id="view-agenda">
     <div class="datestrip" id="datestrip"></div>
+    <div class="daybox" id="dayBox"></div>
     <div class="section-title" id="agendaTitle">Agenda do dia</div>
     <div id="slots"></div>
   </section>
@@ -327,6 +402,11 @@
             <div class="kv mono" id="kGasto" style="color:var(--red-soft)">R$ 0</div><div class="ks" id="kGastoSub">0 lançamentos</div></div>
           <div class="kpi"><div class="kl">Lucro</div>
             <div class="kv mono" id="kLucro">R$ 0</div><div class="ks">faturamento − custos</div></div>
+          <div class="kpi" style="grid-column:1/-1;border-color:rgba(200,162,39,.35)">
+            <div class="kl" style="color:#c8a227">Comissão da equipe</div>
+            <div class="kv mono" id="kComissao" style="color:#ffd75e">R$ 0</div>
+            <div class="ks" id="kComissaoSub">0 carros acima de 10/dia</div>
+          </div>
         </div>
         <div class="chart"><h3 id="chartTitle">Carros por dia</h3><div class="bars" id="bars"></div></div>
       </div>
@@ -444,6 +524,44 @@
   </div>
 </div>
 
+<!-- ===================== META BATIDA ===================== -->
+<div class="party" id="party">
+  <div class="confetti" id="confetti"></div>
+  <div class="party-card">
+    <div class="party-badge">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 21h8"/><path d="M12 17v4"/>
+        <path d="M7 4h10v5a5 5 0 0 1-10 0z"/>
+        <path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/>
+      </svg>
+    </div>
+    <div class="party-num" id="partyNum">16</div>
+    <h2>Meta batida!</h2>
+    <p id="partySub"></p>
+    <button class="btn" style="margin-top:22px" onclick="fecharParty()">Vamos pra mais!</button>
+  </div>
+</div>
+
+<!-- ===================== TELA INICIAL ===================== -->
+<div class="splash" id="splash">
+  <div class="splash-bg"><img src="hero-bg.jpg" alt="" /></div>
+  <div class="splash-in">
+    <div class="splash-logo"><img src="assets/logo-wordmark.png" alt="New Wash Express" /></div>
+    <div class="splash-mid">
+      <div class="splash-accent"></div>
+      <p class="splash-verse" id="splashVerse"></p>
+      <div class="splash-ref" id="splashRef"></div>
+    </div>
+    <div class="splash-foot">
+      <button class="splash-btn" onclick="entrarApp()">
+        Acessar o painel
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+      </button>
+      <div class="splash-date" id="splashDate"></div>
+    </div>
+  </div>
+</div>
+
 <!-- documento imprimível (só aparece na impressão/PDF) -->
 <div id="osDoc"></div>
 
@@ -525,6 +643,88 @@ const ICONS = {
 };
 function svg(name, s){ s=s||20; return `<svg class="svgic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`; }
 
+/* ---------- VERSÍCULO DO DIA (trabalho, honestidade, honra, coração) ---------- */
+const VERSICULOS = [
+  ['Tudo quanto fizerdes, fazei-o de coração, como ao Senhor e não aos homens.','Colossenses 3:23'],
+  ['Confia ao Senhor as tuas obras, e teus pensamentos serão estabelecidos.','Provérbios 16:3'],
+  ['Viste um homem diligente na sua obra? Perante reis será posto.','Provérbios 22:29'],
+  ['Os que agem fielmente são o seu deleite.','Provérbios 12:22'],
+  ['O peso justo é o prazer do Senhor.','Provérbios 11:1'],
+  ['Tudo quanto te vier à mão para fazer, faze-o conforme as tuas forças.','Eclesiastes 9:10'],
+  ['O que ajunta pouco a pouco terá aumento.','Provérbios 13:11'],
+  ['Em todo trabalho há proveito.','Provérbios 14:23'],
+  ['Confirma sobre nós a obra das nossas mãos.','Salmos 90:17'],
+  ['Os planos do diligente conduzem à abundância.','Provérbios 21:5'],
+  ['Fazei tudo para a glória de Deus.','1 Coríntios 10:31'],
+  ['Confia no Senhor de todo o teu coração.','Provérbios 3:5'],
+  ['A mão diligente enriquece.','Provérbios 10:4'],
+  ['O peso e a balança justos são do Senhor.','Provérbios 16:11'],
+  ['Não nos cansemos de fazer o bem, porque a seu tempo ceifaremos.','Gálatas 6:9'],
+  ['O homem fiel será cheio de bênçãos.','Provérbios 28:20'],
+  ['Sede fervorosos de espírito, servindo ao Senhor.','Romanos 12:11'],
+  ['O justo anda na sua sinceridade.','Provérbios 20:7'],
+  ['Em tudo te dá por exemplo de boas obras.','Tito 2:7'],
+  ['A integridade dos retos os guiará.','Provérbios 11:3'],
+  ['Trabalhe, fazendo com as mãos o que é bom.','Efésios 4:28'],
+  ['Procurai viver quietos e trabalhar com as próprias mãos.','1 Tessalonicenses 4:11'],
+  ['Prepara os teus trabalhos lá fora e apronta o teu campo.','Provérbios 24:27'],
+  ['A mão dos diligentes dominará.','Provérbios 12:24'],
+  ['Comerás do trabalho das tuas mãos; feliz serás.','Salmos 128:2'],
+  ['Mais digno de ser escolhido é o bom nome do que as muitas riquezas.','Provérbios 22:1'],
+  ['Melhor é o pouco com justiça do que a abundância sem direito.','Provérbios 16:8'],
+  ['Quem guarda a figueira comerá do seu fruto.','Provérbios 27:18'],
+  ['O que anda em integridade anda seguro.','Provérbios 10:9'],
+  ['Seja sobre nós a graça do Senhor nosso Deus.','Salmos 90:17'],
+  ['Tudo o que fizerdes, fazei-o em nome do Senhor Jesus.','Colossenses 3:17'],
+];
+function diaDoAno(d){ const i=new Date(d.getFullYear(),0,0); return Math.floor((d-i)/86400000); }
+function versiculoDeHoje(){ return VERSICULOS[diaDoAno(new Date()) % VERSICULOS.length]; }
+
+/* ---------- META E COMISSÃO (faixas por dia) ----------
+   Carro  1 ao 10 → sem comissão (só salário fixo)
+   Carro 11 ao 16 → R$  5,00 por carro, para CADA funcionário
+   Carro 17 ao 22 → R$ 10,00 por carro, para CADA funcionário
+   Acima de 22    → segue em R$ 10,00 (ajuste ACIMA_DA_ULTIMA se mudar)
+   São 2 funcionários → o total sai multiplicado por 2.
+   A contagem ZERA todo dia. Meta do dia: 16 carros.                      */
+const META_DIARIA   = 16;
+const FUNCIONARIOS  = 2;
+const FAIXAS = [
+  { ate: 10, porCarro:  0 },   // 1–10
+  { ate: 16, porCarro:  5 },   // 11–16
+  { ate: 22, porCarro: 10 },   // 17–22
+];
+const ACIMA_DA_ULTIMA = 10;    // do 23º em diante
+
+function comissaoDoDia(n){
+  let anterior=0, carros=0, porFunc=0;
+  for(const f of FAIXAS){
+    const naFaixa = Math.max(0, Math.min(n, f.ate) - anterior);
+    if(naFaixa && f.porCarro){ porFunc += naFaixa*f.porCarro; carros += naFaixa; }
+    anterior = f.ate;
+  }
+  const acima = Math.max(0, n - anterior);
+  if(acima){ porFunc += acima*ACIMA_DA_ULTIMA; carros += acima; }
+  return { carros, porFuncionario: porFunc, total: porFunc*FUNCIONARIOS };
+}
+// quanto vale o PRÓXIMO carro (por funcionário)
+function valorProximoCarro(n){
+  const prox=n+1; let anterior=0;
+  for(const f of FAIXAS){ if(prox>anterior && prox<=f.ate) return f.porCarro; anterior=f.ate; }
+  return ACIMA_DA_ULTIMA;
+}
+// soma dia a dia (as faixas reiniciam todo dia)
+function comissaoPeriodo(appts){
+  const porDia={};
+  appts.filter(a=>a.status==='done').forEach(a=>{ porDia[a.date]=(porDia[a.date]||0)+1; });
+  let carros=0, total=0, diasNaMeta=0;
+  Object.entries(porDia).forEach(([d,q])=>{
+    const c=comissaoDoDia(q); carros+=c.carros; total+=c.total;
+    if(q>=META_DIARIA) diasNaMeta++;
+  });
+  return { carros, total, diasNaMeta, dias:Object.keys(porDia).length };
+}
+
 let DB = { appts:[], exps:[], docs:[] };
 const store = {
   get appts(){ return DB.appts; },
@@ -594,6 +794,7 @@ const apptSvcNames = a => a.services.map(id=>svcById(id)?.name.replace('Lavagem 
 function renderSlots(){
   const dateStr = ymd(selDate), list = apptsFor(dateStr), isToday = ymd(new Date())===dateStr;
   document.getElementById('agendaTitle').textContent = isToday ? 'Agenda de hoje' : `Agenda — ${selDate.getDate()} ${MON[selDate.getMonth()]}`;
+  renderDayBox();
   const wrap = document.getElementById('slots'); wrap.innerHTML='';
   const byTime={}; list.forEach(a=>{ (byTime[a.time]=byTime[a.time]||[]).push(a); });
   // slots do dia + qualquer horário que já tenha agendamento (nunca esconde nada)
@@ -855,8 +1056,15 @@ function renderDash(){
   document.getElementById('kTicket').textContent = money(done.length?fat/done.length:0);
   document.getElementById('kGasto').textContent = money(gasto);
   document.getElementById('kGastoSub').textContent = `${exps.length} lançamento${exps.length!==1?'s':''}`;
-  const lucro=fat-gasto, kl=document.getElementById('kLucro');
+  const com=comissaoPeriodo(appts);
+  document.getElementById('kComissao').textContent = money2(com.total);
+  document.getElementById('kComissaoSub').textContent =
+    `${com.carros} carro${com.carros!==1?'s':''} comissionado${com.carros!==1?'s':''} · ${FUNCIONARIOS} funcionários`
+    + (com.diasNaMeta?` · ${com.diasNaMeta} dia${com.diasNaMeta>1?'s':''} na meta`:'');
+
+  const lucro=fat-gasto-com.total, kl=document.getElementById('kLucro');
   kl.textContent = money(lucro); kl.style.color = lucro>=0?'var(--green)':'var(--red-soft)';
+  document.querySelector('#kLucro').nextElementSibling.textContent='faturamento − custos − comissão';
   renderBars();
   renderCustos(exps);
 }
@@ -1015,6 +1223,98 @@ async function wipeData(){
   closeSheet(); renderSlots(); renderDateStrip(); if(dashUnlocked) renderDash(); toast('Dados apagados');
 }
 
+/* ---------- TELA INICIAL ---------- */
+function initSplash(){
+  const [txt,ref]=versiculoDeHoje();
+  document.getElementById('splashVerse').innerHTML=`<span class="q">“</span>${txt}<span class="q">”</span>`;
+  document.getElementById('splashRef').textContent=ref;
+  const n=new Date();
+  document.getElementById('splashDate').textContent=
+    `${DOW[n.getDay()]}, ${n.getDate()} de ${MON[n.getMonth()]} de ${n.getFullYear()}`.replace(/^\w/,c=>c.toUpperCase());
+}
+function entrarApp(){
+  document.getElementById('splash').classList.add('hide');
+  // o toque no botão é um gesto do usuário — bom momento pra ativar as notificações
+  try{ subscribePush(true); }catch(e){}
+}
+
+/* ---------- RESUMO DO DIA (sem valores — dinheiro só no painel) ---------- */
+function renderDayBox(){
+  const ds=ymd(selDate);
+  const doDia=apptsFor(ds);
+  const lavados=doDia.filter(a=>a.status==='done');
+  const pendentes=doDia.filter(a=>a.status!=='done');
+  const ehHoje=ymd(new Date())===ds;
+
+  const cont={}; SERVICES.forEach(s=>cont[s.id]=0);
+  lavados.forEach(a=>a.services.forEach(id=>{ if(cont[id]!=null) cont[id]++; }));
+
+  const cards=SERVICES.map(s=>{
+    const n=cont[s.id]||0;
+    const nome=s.main? s.name.replace('Lavagem simples — ','') : 'Cera';
+    return `<div class="bym${n?' on':''}"><div class="ic">${svg(s.icon,17)}</div>
+      <div class="n">${n}</div><div class="t">${nome}</div></div>`;
+  }).join('');
+
+  const n=lavados.length;
+  const pct=Math.min(100, Math.round(n/META_DIARIA*100));
+  const com=comissaoDoDia(n);
+  const bateu=n>=META_DIARIA;
+  const prox=valorProximoCarro(n);
+  const faltamComissao=Math.max(0, FAIXAS[0].ate+1-n);
+
+  let faixa;
+  if(bateu)            faixa=`<span class="gold">Meta batida! ${n} carros</span> · o próximo vale R$ ${prox},00`;
+  else if(com.carros)  faixa=`<b>${com.carros}</b> com comissão · faltam <b>${META_DIARIA-n}</b> pra meta`;
+  else if(n)           faixa=`Faltam <b>${faltamComissao}</b> pra começar a comissão`;
+  else                 faixa=`Meta do dia: <b>${META_DIARIA}</b> carros`;
+
+  document.getElementById('dayBox').innerHTML=`
+    <div class="daybox-top">
+      <div>
+        <div class="lbl">${ehHoje?'Lavados hoje':'Lavados no dia'}</div>
+        <div class="big">${n}<small>de ${META_DIARIA}</small></div>
+      </div>
+      <div class="pend"><b>${pendentes.length}</b>na fila</div>
+    </div>
+    <div class="meta-bar"><span style="width:${pct}%" class="${bateu?'full':''}"></span></div>
+    <div class="meta-txt ${bateu?'ok':''}">${faixa}</div>
+    <div class="bymodel">${cards}</div>`;
+
+  if(ehHoje && bateu) talvezComemorar(ds, n);
+}
+
+/* ---------- COMEMORAÇÃO DA META ---------- */
+function talvezComemorar(ds, n){
+  if(localStorage.getItem('nw_meta_'+ds)) return;   // já comemorou hoje
+  localStorage.setItem('nw_meta_'+ds,'1');
+  comemorar(n);
+}
+function comemorar(n){
+  const com=comissaoDoDia(n);
+  const el=document.getElementById('party');
+  document.getElementById('partyNum').textContent=n;
+  document.getElementById('partySub').innerHTML =
+    `Vocês bateram a meta do dia!<br><b>${com.carros}</b> ${com.carros===1?'carro já rendeu':'carros já renderam'} comissão.`
+    + `<br><span style="font-size:13.5px">Daqui pra frente cada carro vale <b>R$ ${valorProximoCarro(n)},00</b>.</span>`;
+  // confetes
+  const box=document.getElementById('confetti'); box.innerHTML='';
+  const cores=['#c1121f','#e0323f','#ffffff','#7a0c14'];
+  for(let i=0;i<70;i++){
+    const c=document.createElement('i');
+    c.style.left=Math.random()*100+'%';
+    c.style.background=cores[i%cores.length];
+    c.style.animationDelay=(Math.random()*.9)+'s';
+    c.style.animationDuration=(2.4+Math.random()*1.8)+'s';
+    c.style.transform=`rotate(${Math.random()*360}deg)`;
+    if(i%3===0) c.style.borderRadius='50%';
+    box.appendChild(c);
+  }
+  el.classList.add('show');
+  navigator.vibrate?.([90,60,90,60,180]);
+}
+function fecharParty(){ document.getElementById('party').classList.remove('show'); }
+
 /* ---------- NAV + SHEETS ---------- */
 document.querySelectorAll('nav .tab[data-tab]').forEach(t=>{
   t.onclick=()=>{
@@ -1105,6 +1405,6 @@ function subscribeRealtime(){
 }
 
 /* ---------- INIT ---------- */
-setupPin(); renderCatChips(); renderDateStrip(); renderSlots();
+initSplash(); setupPin(); renderCatChips(); renderDateStrip(); renderSlots();
 loadAll(); subscribeRealtime(); initServiceWorker();
 </script>
