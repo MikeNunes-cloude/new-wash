@@ -683,18 +683,18 @@ function versiculoDeHoje(){ return VERSICULOS[diaDoAno(new Date()) % VERSICULOS.
 /* ---------- META E COMISSÃO (faixas por dia) ----------
    Carro  1 ao 10 → sem comissão (só salário fixo)
    Carro 11 ao 16 → R$  5,00 por carro, para CADA funcionário
-   Carro 17 ao 22 → R$ 10,00 por carro, para CADA funcionário
-   Acima de 22    → segue em R$ 10,00 (ajuste ACIMA_DA_ULTIMA se mudar)
+   Carro 17 em diante → R$ 10,00 por carro, para CADA funcionário (sem limite)
    São 2 funcionários → o total sai multiplicado por 2.
+   IMPORTANTE: só conta como CARRO quem tem lavagem (hatch/sedan/camionete).
+   Cera avulsa NÃO conta como carro nem gera comissão.
    A contagem ZERA todo dia. Meta do dia: 16 carros.                      */
 const META_DIARIA   = 16;
 const FUNCIONARIOS  = 2;
 const FAIXAS = [
-  { ate: 10, porCarro:  0 },   // 1–10
-  { ate: 16, porCarro:  5 },   // 11–16
-  { ate: 22, porCarro: 10 },   // 17–22
+  { ate: 10, porCarro: 0 },   // 1–10  → sem comissão
+  { ate: 16, porCarro: 5 },   // 11–16 → R$ 5 cada
 ];
-const ACIMA_DA_ULTIMA = 10;    // do 23º em diante
+const ACIMA_DA_ULTIMA = 10;   // 17 em diante → R$ 10 cada, sem limite
 
 function comissaoDoDia(n){
   let anterior=0, carros=0, porFunc=0;
@@ -716,7 +716,7 @@ function valorProximoCarro(n){
 // soma dia a dia (as faixas reiniciam todo dia)
 function comissaoPeriodo(appts){
   const porDia={};
-  appts.filter(a=>a.status==='done').forEach(a=>{ porDia[a.date]=(porDia[a.date]||0)+1; });
+  appts.filter(a=>a.status==='done' && ehLavagem(a)).forEach(a=>{ porDia[a.date]=(porDia[a.date]||0)+1; });
   let carros=0, total=0, diasNaMeta=0;
   Object.entries(porDia).forEach(([d,q])=>{
     const c=comissaoDoDia(q); carros+=c.carros; total+=c.total;
@@ -789,6 +789,8 @@ const apptsFor = ds => store.appts.filter(a=>a.date===ds).sort((a,b)=>a.time.loc
 const svcById = id => SERVICES.find(s=>s.id===id);
 const apptTotal = a => a.services.reduce((s,id)=>s+(svcById(id)?.price||0),0);
 const apptVehIcon = a => { const m=a.services.map(svcById).find(s=>s&&s.main); return m?m.icon:'drop'; };
+// só é CARRO quem tem uma das 3 lavagens; cera avulsa não conta
+const ehLavagem = a => (a.services||[]).some(id => svcById(id)?.main);
 const apptSvcNames = a => a.services.map(id=>svcById(id)?.name.replace('Lavagem simples — ','').replace(' líquida','')).join(' + ');
 
 function renderSlots(){
@@ -1046,14 +1048,15 @@ function renderDash(){
   const r = periodRange(dashPeriod);
   const appts = store.appts.filter(a=>inRange(a.date,r));
   const done = appts.filter(a=>a.status==='done');
-  const fat = done.reduce((s,a)=>s+apptTotal(a),0);
+  const lavagens = done.filter(ehLavagem);            // cera avulsa não conta como carro
+  const fat = done.reduce((s,a)=>s+apptTotal(a),0);   // faturamento inclui tudo
   const exps = store.exps.filter(e=>inRange(e.date,r));
   const gasto = exps.reduce((s,e)=>s+Number(e.amount),0);
   document.getElementById('kFat').textContent = money(fat);
-  document.getElementById('kFatSub').textContent = `${done.length} lavagem${done.length!==1?'s':''} concluída${done.length!==1?'s':''}`;
-  document.getElementById('kCars').textContent = done.length;
+  document.getElementById('kFatSub').textContent = `${lavagens.length} lavagem${lavagens.length!==1?'s':''} concluída${lavagens.length!==1?'s':''}`;
+  document.getElementById('kCars').textContent = lavagens.length;
   document.getElementById('kCarsSub').textContent = `${appts.length} agendado${appts.length!==1?'s':''}`;
-  document.getElementById('kTicket').textContent = money(done.length?fat/done.length:0);
+  document.getElementById('kTicket').textContent = money(lavagens.length?fat/lavagens.length:0);
   document.getElementById('kGasto').textContent = money(gasto);
   document.getElementById('kGastoSub').textContent = `${exps.length} lançamento${exps.length!==1?'s':''}`;
   const com=comissaoPeriodo(appts);
@@ -1073,7 +1076,7 @@ function renderBars(){
   if(dashPeriod==='day'){
     document.getElementById('chartTitle').textContent='Carros por horário (hoje)';
     const dateStr=ymd(new Date());
-    const done=store.appts.filter(a=>a.date===dateStr && a.status==='done');
+    const done=store.appts.filter(a=>a.date===dateStr && a.status==='done' && ehLavagem(a));
     const buckets={}; timeSlots(dateStr).filter((_,i)=>i%2===0).forEach(t=>buckets[t.slice(0,2)+'h']=0);
     done.forEach(a=>{const h=a.time.slice(0,2)+'h'; buckets[h]=(buckets[h]||0)+1;});
     return drawBars(buckets);
@@ -1083,7 +1086,7 @@ function renderBars(){
   const buckets={}; const now=new Date(); now.setHours(0,0,0,0);
   for(let i=days-1;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i);
     buckets[`${d.getDate()}/${d.getMonth()+1}`]={date:ymd(d),v:0}; }
-  store.appts.filter(a=>a.status==='done').forEach(a=>{ Object.values(buckets).forEach(b=>{ if(b.date===a.date) b.v++; }); });
+  store.appts.filter(a=>a.status==='done' && ehLavagem(a)).forEach(a=>{ Object.values(buckets).forEach(b=>{ if(b.date===a.date) b.v++; }); });
   const simple={}; Object.entries(buckets).forEach(([k,v])=>simple[k]=v.v); drawBars(simple);
 }
 function drawBars(buckets){
@@ -1242,12 +1245,14 @@ function entrarApp(){
 function renderDayBox(){
   const ds=ymd(selDate);
   const doDia=apptsFor(ds);
-  const lavados=doDia.filter(a=>a.status==='done');
+  const lavados=doDia.filter(a=>a.status==='done' && ehLavagem(a));
   const pendentes=doDia.filter(a=>a.status!=='done');
   const ehHoje=ymd(new Date())===ds;
 
   const cont={}; SERVICES.forEach(s=>cont[s.id]=0);
-  lavados.forEach(a=>a.services.forEach(id=>{ if(cont[id]!=null) cont[id]++; }));
+  // modelos: só das lavagens; cera: conta de todos os serviços feitos no dia
+  lavados.forEach(a=>a.services.forEach(id=>{ if(cont[id]!=null && svcById(id)?.main) cont[id]++; }));
+  doDia.filter(a=>a.status==='done').forEach(a=>a.services.forEach(id=>{ if(!svcById(id)?.main) cont[id]++; }));
 
   const cards=SERVICES.map(s=>{
     const n=cont[s.id]||0;
