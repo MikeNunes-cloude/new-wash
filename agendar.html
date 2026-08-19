@@ -44,9 +44,9 @@
   .hero{position:relative;min-height:100svh;display:flex;align-items:center;
     padding:110px 0 70px;overflow:hidden}
   .hero-bg{position:absolute;inset:0;z-index:0}
-  .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 60%}
+  .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 72%}
   .hero-bg::after{content:"";position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(10,10,10,.82) 0%,rgba(10,10,10,.72) 40%,rgba(10,10,10,.96) 100%)}
+    background:linear-gradient(180deg,rgba(10,10,10,.90) 0%,rgba(10,10,10,.74) 45%,rgba(10,10,10,.97) 100%)}
   .hero-in{position:relative;z-index:1;width:100%}
   .badge{display:inline-flex;align-items:center;gap:8px;padding:8px 15px;border-radius:100px;
     background:rgba(193,18,31,.16);border:1px solid rgba(224,50,63,.42);
@@ -118,17 +118,6 @@
   .svc-item .t .n{font-weight:700;font-size:15.5px}
   .svc-item .t .d{font-size:13px;color:var(--muted);margin-top:2px}
   .svc-item .p{font-size:21px;font-weight:800;letter-spacing:-.02em}
-
-  /* galeria */
-  .gal{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:42px}
-  .gal figure{margin:0;border-radius:16px;overflow:hidden;position:relative;background:var(--surface);
-    border:1px solid var(--line)}
-  .gal img{width:100%;height:100%;object-fit:cover;display:block;transition:.5s}
-  .gal figure:hover img{transform:scale(1.04)}
-  .gal .g1{grid-column:1/-1;aspect-ratio:16/10}
-  .gal .g2{aspect-ratio:4/3}
-  .gal figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 16px 13px;
-    background:linear-gradient(transparent,rgba(0,0,0,.88));font-size:12.5px;font-weight:700;letter-spacing:.02em}
 
   /* ---------- AGENDAMENTO ---------- */
   .book{background:var(--surface);border-top:1px solid var(--line)}
@@ -248,8 +237,6 @@
   @media(min-width:720px){
     .diff-grid{grid-template-columns:repeat(3,1fr)}
     .steps{grid-template-columns:repeat(3,1fr)}
-    .gal{grid-template-columns:repeat(3,1fr)}
-    .gal .g1{grid-column:1/-1}
     .book-card{padding:38px 34px}
     .foot-in{flex-direction:row;justify-content:space-between;align-items:center}
   }
@@ -265,7 +252,7 @@
 
 <!-- ===================== HERO ===================== -->
 <header class="hero">
-  <div class="hero-bg"><img src="assets/lavagem-fachada.jpg" alt="Profissional New Wash Express lavando um carro" /></div>
+  <div class="hero-bg"><img src="hero-bg.jpg" alt="Box de lavagem New Wash Express" /></div>
   <div class="hero-in wrap">
     <div class="badge"><span class="dot"></span> Lavagem em até 30 minutos</div>
     <h1>Cuidamos do seu carro<em>enquanto você se cuida.</em></h1>
@@ -349,24 +336,6 @@
   </div>
 </section>
 
-<!-- ===================== GALERIA ===================== -->
-<section id="galeria">
-  <div class="wrap">
-    <div class="rv">
-      <div class="eyebrow">A loja</div>
-      <h2 class="sec-h">Um espaço feito pra cuidar<br>do seu carro.</h2>
-    </div>
-    <div class="gal">
-      <figure class="g1 rv"><img src="assets/espuma-box.jpg" alt="Carro coberto de espuma no box" loading="lazy" /><figcaption>Espuma, pressão controlada e produto profissional</figcaption></figure>
-      <figure class="g2 rv"><img src="assets/detalhe-roda.jpg" alt="Lavagem detalhada das rodas" loading="lazy" /><figcaption>Acabamento em cada detalhe</figcaption></figure>
-      <figure class="g2 rv"><img src="assets/limpeza-interna.jpg" alt="Limpeza interna do veículo" loading="lazy" /><figcaption>Por dentro também</figcaption></figure>
-      <figure class="g2 rv"><img src="assets/equipe.jpg" alt="Equipe New Wash Express" loading="lazy" /><figcaption>Equipe uniformizada e treinada</figcaption></figure>
-      <figure class="g2 rv"><img src="assets/interior.jpg" alt="Box iluminado" loading="lazy" /><figcaption>Box iluminado e equipado</figcaption></figure>
-      <figure class="g2 rv"><img src="assets/loja-fechada.jpg" alt="Fachada New Wash Express" loading="lazy" /><figcaption>Nossa fachada</figcaption></figure>
-    </div>
-  </div>
-</section>
-
 <!-- ===================== AGENDAMENTO ===================== -->
 <section class="book" id="agendar">
   <div class="wrap">
@@ -437,6 +406,11 @@
       <div>
         <img src="assets/logo-wordmark.png" alt="New Wash Express" />
         <p class="foot-txt" style="margin-top:16px">Lavagem premium com hora marcada. Seu carro pronto no tempo da sua rotina.</p>
+        <p class="foot-txt" style="margin-top:14px;font-size:13.5px">
+          <b style="color:#fff">Segunda a sexta</b> · 08h às 19h<br>
+          <b style="color:#fff">Sábado</b> · 07h às 15h<br>
+          <span style="color:var(--muted-2)">Domingo · fechado</span>
+        </p>
       </div>
       <button class="btn" onclick="goBook()">Agendar agora</button>
     </div>
@@ -460,10 +434,18 @@ const SB_KEY='sb_publishable_16cjr1tvjRLcyTiQTr9IbQ_ui3Q1bEA';
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
 /* ---- AJUSTES DO NEGÓCIO (mexa aqui se mudar) ---- */
-const ABERTURA='08:00', FECHAMENTO='18:00';   // horário de funcionamento
+// horário por dia da semana — null = fechado
+const HORARIOS = {
+  0: null,                  // domingo — fechado
+  1: ['08:00','19:00'],     // segunda
+  2: ['08:00','19:00'],     // terça
+  3: ['08:00','19:00'],     // quarta
+  4: ['08:00','19:00'],     // quinta
+  5: ['08:00','19:00'],     // sexta
+  6: ['07:00','15:00'],     // sábado
+};
 const CAPACIDADE_POR_HORARIO = 1;             // quantos carros cabem no mesmo horário
 const DIAS_VISIVEIS = 14;                     // quantos dias o cliente pode agendar à frente
-const FECHA_DOMINGO = true;                   // domingo fechado?
 const WHATSAPP = '';                          // ex: '5511999998888' (deixe vazio se ainda não tiver)
 
 const SERVICES=[
@@ -526,7 +508,7 @@ function diasDisponiveis(){
   const out=[]; const hoje=new Date(); hoje.setHours(0,0,0,0);
   for(let i=0;i<DIAS_VISIVEIS;i++){
     const d=new Date(hoje); d.setDate(hoje.getDate()+i);
-    if(FECHA_DOMINGO && d.getDay()===0) continue;
+    if(!HORARIOS[d.getDay()]) continue;   // pula dias fechados
     out.push(d);
   }
   return out;
@@ -544,8 +526,13 @@ function renderDates(){
 }
 
 /* ---------- HORÁRIOS ---------- */
-function slots(){
-  const [oh,om]=ABERTURA.split(':').map(Number), [ch,cm]=FECHAMENTO.split(':').map(Number);
+function horarioDoDia(ds){
+  if(!ds) return null;
+  return HORARIOS[new Date(ds+'T12:00:00').getDay()] || null;
+}
+function slots(ds){
+  const h=horarioDoDia(ds); if(!h) return [];
+  const [oh,om]=h[0].split(':').map(Number), [ch,cm]=h[1].split(':').map(Number);
   const out=[]; let t=oh*60+om; const fim=ch*60+cm;
   while(t<fim){ out.push(`${pad(Math.floor(t/60))}:${pad(t%60)}`); t+=30; }
   return out;
@@ -564,7 +551,7 @@ function renderTimes(){
   const agora=new Date(); const ehHoje=ymd(agora)===state.date;
   const minutosAgora=agora.getHours()*60+agora.getMinutes();
   let livres=0;
-  slots().forEach(t=>{
+  slots(state.date).forEach(t=>{
     const [h,m]=t.split(':').map(Number);
     const passou = ehHoje && (h*60+m) <= minutosAgora+15;   // 15 min de antecedência
     const cheio = (ocupados[t]||0) >= CAPACIDADE_POR_HORARIO;
@@ -575,8 +562,10 @@ function renderTimes(){
     b.onclick=()=>{ state.time=t; renderTimes(); renderSummary(); };
     g.appendChild(b);
   });
-  hint.textContent = livres ? `${livres} horário${livres>1?'s':''} livre${livres>1?'s':''} nesse dia.`
-                            : 'Sem horários livres nesse dia — tente outro.';
+  const h=horarioDoDia(state.date);
+  hint.textContent = livres
+    ? `${livres} horário${livres>1?'s':''} livre${livres>1?'s':''} · atendemos das ${h[0]} às ${h[1]}`
+    : 'Sem horários livres nesse dia — tente outro.';
 }
 
 /* ---------- RESUMO ---------- */
