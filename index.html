@@ -1248,48 +1248,47 @@ function entrarApp(){
 function renderDayBox(){
   const ds=ymd(selDate);
   const doDia=apptsFor(ds);
-  const lavados=doDia.filter(a=>a.status==='done' && ehLavagem(a));
-  const pendentes=doDia.filter(a=>a.status!=='done');
+  const carros=doDia.filter(ehLavagem);                    // carros do dia (agendados + concluídos)
+  const concluidos=carros.filter(a=>a.status==='done');
+  const naFila=carros.length-concluidos.length;
   const ehHoje=ymd(new Date())===ds;
 
+  // modelos: todos os carros do dia; cera: todos os serviços lançados no dia
   const cont={}; SERVICES.forEach(s=>cont[s.id]=0);
-  // modelos: só das lavagens; cera: conta de todos os serviços feitos no dia
-  lavados.forEach(a=>a.services.forEach(id=>{ if(cont[id]!=null && svcById(id)?.main) cont[id]++; }));
-  doDia.filter(a=>a.status==='done').forEach(a=>a.services.forEach(id=>{ if(!svcById(id)?.main) cont[id]++; }));
+  carros.forEach(a=>a.services.forEach(id=>{ if(cont[id]!=null && svcById(id)?.main) cont[id]++; }));
+  doDia.forEach(a=>a.services.forEach(id=>{ if(!svcById(id)?.main) cont[id]++; }));
 
   const cards=SERVICES.map(s=>{
-    const n=cont[s.id]||0;
+    const q=cont[s.id]||0;
     const nome=s.main? s.name.replace('Lavagem simples — ','') : 'Cera';
-    return `<div class="bym${n?' on':''}"><div class="ic">${svg(s.icon,17)}</div>
-      <div class="n">${n}</div><div class="t">${nome}</div></div>`;
+    return `<div class="bym${q?' on':''}"><div class="ic">${svg(s.icon,17)}</div>
+      <div class="n">${q}</div><div class="t">${nome}</div></div>`;
   }).join('');
 
-  const n=lavados.length;
+  const n=carros.length;                                   // meta e marcos = carros do dia
   const pct=Math.min(100, Math.round(n/META_DIARIA*100));
-  const com=comissaoDoDia(n);
+  const com=comissaoDoDia(concluidos.length);              // comissão = só o que foi concluído
   const bateu=n>=META_DIARIA;
-  const prox=valorProximoCarro(n);
-  const faltamComissao=Math.max(0, CARROS_SEM_COMISSAO_ATE+1-n);
 
   let faixa;
-  if(bateu)            faixa=`<span class="gold">Meta batida! ${n} carros</span> · o próximo vale R$ ${prox},00`;
-  else if(com.carros)  faixa=`<b>${com.carros}</b> com comissão · faltam <b>${META_DIARIA-n}</b> pra meta`;
-  else if(n)           faixa=`Faltam <b>${faltamComissao}</b> pra começar a comissão`;
-  else                 faixa=`Meta do dia: <b>${META_DIARIA}</b> carros`;
+  if(bateu)   faixa=`<span class="gold">Meta batida! ${n} carros no dia</span>`;
+  else if(n)  faixa=`Faltam <b>${META_DIARIA-n}</b> pra bater a meta`;
+  else        faixa=`Meta do dia: <b>${META_DIARIA}</b> carros`;
+  if(com.carros) faixa += ` · <b>${com.carros}</b> já com comissão`;
 
   document.getElementById('dayBox').innerHTML=`
     <div class="daybox-top">
       <div>
-        <div class="lbl">${ehHoje?'Lavados hoje':'Lavados no dia'}</div>
+        <div class="lbl">${ehHoje?'Carros hoje':'Carros no dia'}</div>
         <div class="big">${n}<small>de ${META_DIARIA}</small></div>
       </div>
-      <div class="pend"><b>${pendentes.length}</b>na fila</div>
+      <div class="pend"><b>${concluidos.length}</b>concluídos<br><span style="color:var(--muted-2)">${naFila} na fila</span></div>
     </div>
     <div class="meta-bar"><span style="width:${pct}%" class="${bateu?'full':''}"></span></div>
     <div class="meta-txt ${bateu?'ok':''}">${faixa}</div>
     <div class="bymodel">${cards}</div>`;
 
-  if(ehHoje && bateu) talvezComemorar(ds, n);
+  if(ehHoje) talvezComemorar(ds, n);      // avalia TODOS os marcos, não só a meta
 }
 
 /* ---------- COMEMORAÇÃO (marcos do dia) ---------- */
@@ -1300,11 +1299,11 @@ const MARCOS = [
 function talvezComemorar(ds, n){
   let mostrar=null;
   MARCOS.forEach(m=>{
-    if(n < m.em) return;
     const k = `nw_marco_${ds}_${m.em}`;
+    if(n < m.em){ localStorage.removeItem(k); return; }   // caiu abaixo → pode comemorar de novo
     if(localStorage.getItem(k)) return;
     localStorage.setItem(k,'1');
-    mostrar = m;                    // se passou vários de uma vez, mostra o maior
+    mostrar = m;                    // se passou vários de uma vez, mostra só o maior
   });
   if(mostrar) comemorar(mostrar.tipo, n);
 }
@@ -1321,9 +1320,9 @@ function comemorar(tipo, n){
   document.getElementById('partyTitle').textContent = meta ? 'Meta batida!' : 'Comissão liberada!';
 
   document.getElementById('partySub').innerHTML = meta
-    ? `Vocês bateram a meta do dia!<br><b>${com.carros}</b> ${com.carros===1?'carro já rendeu':'carros já renderam'} comissão.`
+    ? `Vocês bateram a meta! <b>${n} carros</b> no dia.`
       + `<br><span class="party-hint">Daqui pra frente cada carro vale <b>R$ ${valorProximoCarro(n)},00</b> para cada um.</span>`
-    : `Parabéns! Daqui pra frente cada carro já vale comissão.`
+    : `Parabéns! <b>${n} carros</b> no dia — a comissão está liberada.`
       + `<br><span class="party-hint">Até o ${META_DIARIA}º carro, cada lavagem rende <b>R$ ${FAIXAS[FAIXAS.length-1].porCarro},00</b> para cada um.`
       + `<br>Faltam <b>${Math.max(0,META_DIARIA-n)}</b> pra bater a meta!</span>`;
 
