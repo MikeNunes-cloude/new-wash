@@ -244,21 +244,55 @@
   .swatch-note{font-size:11px;color:var(--muted-2);text-align:center;padding:18px 20px 4px;line-height:1.5}
 
   /* ---------- TELA INICIAL (splash) ---------- */
-  /* vidro embaçado: a fachada nítida atrás, névoa por cima,
-     e as gotas escorrendo vão limpando e revelando a loja */
+  /* arte do carro chegando em uma freada */
   .splash{position:fixed;inset:0;z-index:100;background:#080808;
     display:flex;flex-direction:column;overflow:hidden;transition:opacity .5s ease,visibility .5s}
   .splash.hide{opacity:0;visibility:hidden;pointer-events:none}
-  .sp-lyr{position:absolute;inset:0;pointer-events:none}
-  .sp-foto{width:100%;height:100%;object-fit:cover;object-position:center 62%;
-    filter:brightness(1.28) saturate(1.28) contrast(1.08)}
-  canvas.sp-lyr{width:100%;height:100%}
-  .sp-tint{background:
-    radial-gradient(52% 40% at 50% 30%, rgba(224,50,63,.30) 0%, rgba(224,50,63,0) 72%),
-    radial-gradient(80% 60% at 50% 36%, rgba(122,12,20,.34) 0%, rgba(122,12,20,0) 78%);
-    mix-blend-mode:soft-light}
+
+  .sp-art{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+  .sp-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;
+    transform-origin:58% 42%;animation:freada 1900ms cubic-bezier(.17,.74,.26,1) both}
+  /* risco de luz passando junto com o carro */
+  .sp-streak{position:absolute;inset:0;opacity:0;
+    background:linear-gradient(255deg,transparent 34%,rgba(255,60,60,.34) 47%,rgba(255,150,120,.50) 50%,rgba(255,60,60,.28) 54%,transparent 66%);
+    animation:risco 1150ms ease-out both}
+  /* poeira levantando no fim da frenagem */
+  .sp-dust{position:absolute;inset:0;opacity:0;
+    background:radial-gradient(46% 26% at 30% 62%, rgba(255,70,60,.30) 0%, rgba(255,70,60,0) 70%),
+               radial-gradient(60% 30% at 52% 66%, rgba(150,18,26,.34) 0%, rgba(150,18,26,0) 74%);
+    animation:poeira 2600ms ease-out 700ms both}
+
+  @keyframes freada{
+    0%  {transform:translate3d(72%,-5%,0) scale(1.24);filter:blur(14px) brightness(1.4) saturate(1.25);opacity:0}
+    8%  {opacity:1}
+    56% {transform:translate3d(-5.2%,1.1%,0) scale(1.030);filter:blur(1.2px) brightness(1.08)}   /* passa do ponto */
+    78% {transform:translate3d(2.6%,-.6%,0) scale(1.008);filter:blur(0) brightness(1.02)}        /* peso volta */
+    89% {transform:translate3d(-1.1%,.25%,0) scale(1.002)}
+    96% {transform:translate3d(.35%,0,0)}
+    100%{transform:translate3d(0,0,0) scale(1);filter:none}
+  }
+  @keyframes risco{
+    0%{opacity:0;transform:translateX(60%)} 22%{opacity:.85} 100%{opacity:0;transform:translateX(-45%)}
+  }
+  @keyframes poeira{
+    0%{opacity:0;transform:translateX(9%) scale(.94)} 28%{opacity:.9} 100%{opacity:.42;transform:translateX(0) scale(1)}
+  }
+
+  /* conteúdo entra depois que o carro para */
+  .splash-in>*{animation:sobe 620ms cubic-bezier(.2,.8,.25,1) both}
+  .splash-logo{animation-delay:1120ms}
+  .splash-verse{animation-delay:1260ms}
+  .splash-ref{animation-delay:1350ms}
+  .splash-foot{animation-delay:1440ms}
+  @keyframes sobe{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+  @media (prefers-reduced-motion:reduce){
+    .sp-art img,.sp-streak,.sp-dust,.splash-in>*{animation:none!important;opacity:1!important;transform:none!important;filter:none!important}
+    .sp-dust{opacity:.42}
+  }
+
   .splash-veil{position:absolute;inset:0;pointer-events:none;
-    background:linear-gradient(180deg,rgba(8,8,8,.40) 0%,rgba(8,8,8,.14) 22%,rgba(8,8,8,.28) 42%,rgba(8,8,8,.88) 62%,#080808 78%)}
+    background:linear-gradient(180deg,rgba(8,8,8,.10) 0%,rgba(8,8,8,0) 26%,rgba(8,8,8,.30) 48%,rgba(8,8,8,.88) 66%,#080808 80%)}
 
   .splash-in{position:relative;z-index:6;flex:1;display:flex;flex-direction:column;justify-content:flex-end;
     padding:calc(var(--safe-top) + 40px) 30px calc(var(--safe-bottom) + 30px);
@@ -557,10 +591,11 @@
 
 <!-- ===================== TELA INICIAL ===================== -->
 <div class="splash" id="splash">
-  <img class="sp-lyr sp-foto" id="spFoto" src="hero-bg.jpg" alt="" />
-  <canvas class="sp-lyr" id="spFog"></canvas>
-  <canvas class="sp-lyr" id="spHeads"></canvas>
-  <div class="sp-lyr sp-tint"></div>
+  <div class="sp-art">
+    <img src="splash-car.jpg" alt="" />
+    <div class="sp-streak"></div>
+    <div class="sp-dust"></div>
+  </div>
   <div class="splash-veil"></div>
   <div class="splash-in">
     <div class="splash-logo"><img src="logo-wordmark-t.png" alt="New Wash Express" /></div>
@@ -1243,7 +1278,6 @@ async function wipeData(){
 
 /* ---------- TELA INICIAL ---------- */
 function initSplash(){
-  montarVidro();
   const [txt,ref]=versiculoDeHoje();
   document.getElementById('splashVerse').innerHTML=`<span class="q">“</span>${txt}<span class="q">”</span>`;
   document.getElementById('splashRef').textContent=ref;
@@ -1252,82 +1286,6 @@ function initSplash(){
     `${DOW[n.getDay()]}, ${n.getDate()} de ${MON[n.getMonth()]} de ${n.getFullYear()}`.replace(/^\w/,c=>c.toUpperCase());
 }
 /* ---- vidro embaçado (calibrado: névoa 29 · gotas 38 · trilha 3) ---- */
-const VIDRO = { nevoa:.42, gotas:38, refog:.0016 };
-let _vW,_vH,_vDPR,_vDrops=[],_vRAF=null,_vFx=null,_vHx=null,_vImg=null;
-
-function montarVidro(){
-  _vImg=document.getElementById('spFoto');
-  const fog=document.getElementById('spFog'), hd=document.getElementById('spHeads');
-  if(!fog||!hd) return;
-  _vFx=fog.getContext('2d'); _vHx=hd.getContext('2d');
-  const iniciar=()=>{ dimensionarVidro(); if(!_vRAF) loopVidro(); };
-  if(_vImg.complete && _vImg.naturalWidth) iniciar();
-  else { _vImg.onload=iniciar; _vImg.onerror=()=>{}; }
-  addEventListener('resize',()=>{ if(_vRAF) dimensionarVidro(); });
-}
-function dimensionarVidro(){
-  _vDPR=Math.min(devicePixelRatio||1,2);
-  _vW=innerWidth; _vH=innerHeight;
-  [document.getElementById('spFog'),document.getElementById('spHeads')].forEach(c=>{
-    c.width=_vW*_vDPR; c.height=_vH*_vDPR; });
-  _vFx.setTransform(_vDPR,0,0,_vDPR,0,0); _vHx.setTransform(_vDPR,0,0,_vDPR,0,0);
-  pintarNevoa(1);
-  _vDrops=Array.from({length:VIDRO.gotas},()=>novaGota(false));
-}
-function coverVidro(c){
-  const ar=_vImg.naturalWidth/_vImg.naturalHeight, arc=_vW/_vH; let w,h,x,y;
-  if(ar>arc){ h=_vH; w=_vH*ar; x=(_vW-w)/2; y=0; } else { w=_vW; h=_vW/ar; x=0; y=(_vH-h)*.62; }
-  c.drawImage(_vImg,x-30,y-30,w+60,h+60);
-}
-function pintarNevoa(alpha){
-  _vFx.globalCompositeOperation='source-over'; _vFx.globalAlpha=alpha;
-  _vFx.filter='blur(14px) saturate(.55) brightness(.60)';
-  coverVidro(_vFx); _vFx.filter='none';
-  _vFx.fillStyle='rgba(12,11,13,'+VIDRO.nevoa+')'; _vFx.fillRect(0,0,_vW,_vH);
-  _vFx.globalAlpha=1;
-}
-function apagarNevoa(x,y,r){
-  const g=_vFx.createRadialGradient(x,y,0,x,y,r);
-  g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(.42,'rgba(0,0,0,.92)');
-  g.addColorStop(.72,'rgba(0,0,0,.45)'); g.addColorStop(1,'rgba(0,0,0,0)');
-  _vFx.globalCompositeOperation='destination-out'; _vFx.fillStyle=g;
-  _vFx.beginPath(); _vFx.arc(x,y,r,0,6.284); _vFx.fill();
-  _vFx.globalCompositeOperation='source-over';
-}
-function novaGota(topo){
-  // 1 em cada 3 é grande e desce rápido; o resto quase não sai do lugar
-  const grande=Math.random()<.34;
-  const r=grande? 4.5+Math.random()*7 : 1.4+Math.random()*3;
-  return {x:Math.random()*_vW, y:topo?-r*2:Math.random()*_vH, r,
-    v: grande? .3+Math.random()*1.0 : .01+Math.random()*.1,
-    g: grande? .045+Math.random()*.055 : .004+Math.random()*.012,
-    adere: grande? .010 : .055,
-    espera: Math.random()*300, fase: Math.random()*6.28};
-}
-function loopVidro(){
-  pintarNevoa(VIDRO.refog);                       // a névoa volta devagar
-  _vHx.clearRect(0,0,_vW,_vH);
-  _vDrops.forEach((d,i)=>{
-    if(d.espera>0) d.espera--;
-    else{
-      d.v+=d.g;                                                        // gravidade própria
-      if(Math.random()<d.adere){ d.v*=.2; d.espera=15+Math.random()*90; }  // gruda no vidro
-      const passos=Math.max(1,Math.ceil(d.v/2));
-      for(let s=0;s<passos;s++){
-        d.y+=d.v/passos; d.x+=Math.sin((d.y+d.fase)/45)*.22;           // serpenteia
-        apagarNevoa(d.x,d.y,d.r*(d.r>4?1.7:1.25));                     // revela a fachada
-      }
-    }
-    const g=_vHx.createRadialGradient(d.x-d.r*.3,d.y-d.r*.35,d.r*.1,d.x,d.y,d.r*1.1);
-    g.addColorStop(0,'rgba(255,255,255,.88)'); g.addColorStop(.35,'rgba(255,255,255,.2)');
-    g.addColorStop(.75,'rgba(255,170,140,.17)'); g.addColorStop(1,'rgba(255,255,255,0)');
-    _vHx.fillStyle=g; _vHx.beginPath(); _vHx.arc(d.x,d.y,d.r*1.25,0,6.284); _vHx.fill();
-    if(d.y-d.r>_vH) _vDrops[i]=novaGota(true);
-  });
-  _vRAF=requestAnimationFrame(loopVidro);
-}
-function pararVidro(){ if(_vRAF){ cancelAnimationFrame(_vRAF); _vRAF=null; } }
-
 function entrarApp(){
   document.getElementById('splash').classList.add('hide');
   setTimeout(pararVidro, 600);
