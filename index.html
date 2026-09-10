@@ -1556,6 +1556,7 @@ function renderDayBox(){
   }).join('');
 
   const n=carros.length;                                   // meta e marcos = carros do dia
+  const gratis=carros.filter(a=>a.free).length;            // permutas + cortesias do dia
   const pct=Math.min(100, Math.round(n/META_DIARIA*100));
   const com=comissaoDoDia(concluidos.length);              // comissão = só o que foi concluído
   const bateu=n>=META_DIARIA;
@@ -1565,6 +1566,7 @@ function renderDayBox(){
   else if(n)  faixa=`Faltam <b>${META_DIARIA-n}</b> pra bater a meta`;
   else        faixa=`Meta do dia: <b>${META_DIARIA}</b> carros`;
   if(com.carros) faixa += ` · <b>${com.carros}</b> já com comissão`;
+  if(gratis)     faixa += ` · <b>${gratis}</b> sem entrada`;
 
   document.getElementById('dayBox').innerHTML=`
     <div class="daybox-top">
