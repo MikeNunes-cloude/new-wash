@@ -154,6 +154,26 @@
   .total-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 4px 6px}
   .total-bar .l{color:var(--muted);font-size:13px;font-weight:600}
   .total-bar .v{font-size:26px;font-weight:800}
+  /* ---------- LAVAGEM GRATUITA / PERMUTA ---------- */
+  .free-block{margin-top:18px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+  .free-block.on{border-color:var(--bordo)}
+  .free-toggle{display:flex;align-items:center;gap:12px;width:100%;padding:14px;text-align:left;background:transparent;color:#fff}
+  .free-toggle .ft-ic{width:38px;height:38px;flex:none;border-radius:11px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--red-soft)}
+  .free-toggle .ft-tx{flex:1;min-width:0}
+  .free-toggle .ft-tx b{display:block;font-size:14px;font-weight:700}
+  .free-toggle .ft-tx small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .free-toggle .ft-sw{width:46px;height:27px;flex:none;border-radius:20px;background:var(--surface-2);border:1px solid var(--line);position:relative;transition:.2s}
+  .free-toggle .ft-sw::after{content:"";position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--muted);transition:.2s}
+  .free-block.on .ft-sw{background:var(--red);border-color:var(--red)}
+  .free-block.on .ft-sw::after{left:21px;background:#fff}
+  .free-detail{padding:2px 14px 16px;border-top:1px solid var(--line)}
+  .free-type{display:flex;gap:8px;margin:14px 0}
+  .free-type button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:13px}
+  .free-type button.on{background:var(--bordo);border-color:var(--red);color:#fff}
+  .free-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:20px;background:rgba(193,18,31,.14);color:var(--red-soft);border:1px solid rgba(193,18,31,.4);vertical-align:middle}
+  .free-note{background:var(--black);border:1px solid var(--bordo);border-radius:12px;padding:12px 14px;margin-top:14px}
+  .free-note .fn-l{font-size:11px;color:var(--red-soft);font-weight:800;letter-spacing:.05em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .free-note .fn-v{font-size:14px;line-height:1.45}
 
   /* lock */
   .lock{text-align:center;padding:60px 30px 20px}
@@ -574,7 +594,22 @@
     </div>
     <label class="fld"><span class="lb">Observações</span>
       <textarea class="inp" id="fObs" placeholder="Ex: riscos na porta, cliente vai esperar, retirar às 14h…"></textarea></label>
-    <div class="total-bar"><span class="l">Total</span><span class="v mono" id="bookTotal">R$ 0</span></div>
+    <div class="free-block" id="freeBlock">
+      <button type="button" class="free-toggle" onclick="toggleFree()">
+        <span class="ft-ic" id="freeIc"></span>
+        <span class="ft-tx"><b>Gratuita / permuta</b><small>Conta como lavagem, mas sem entrada no caixa</small></span>
+        <span class="ft-sw"></span>
+      </button>
+      <div class="free-detail" id="freeDetail" hidden>
+        <div class="free-type" id="freeTypeRow">
+          <button type="button" data-t="permuta" onclick="setFreeType('permuta')"></button>
+          <button type="button" data-t="cortesia" onclick="setFreeType('cortesia')"></button>
+        </div>
+        <label class="fld"><span class="lb">Para quem / o que foi trocado</span>
+          <input class="inp" id="fFreeReason" placeholder="Ex: permuta com a padaria do Zé · cortesia p/ cliente fiel" /></label>
+      </div>
+    </div>
+    <div class="total-bar"><span class="l" id="bookTotalLbl">Total</span><span class="v mono" id="bookTotal">R$ 0</span></div>
     <button class="btn" id="saveBtn" onclick="saveBooking()">Confirmar agendamento</button>
   </div>
 </div>
@@ -734,6 +769,8 @@ const ICONS = {
   plus:'<path d="M12 5v14M5 12h14"/>',
   check:'<path d="M20 6.5L9 17.5l-5-5"/>',
   undo:'<path d="M3 8v5h5"/><path d="M4 13a8.5 8.5 0 1 1 1.8 6"/>',
+  gift:'<rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5v8h14v-8"/><path d="M12 8.5v12"/><path d="M12 8.5S10.8 4.5 8.3 5.2 9 8.5 12 8.5z"/><path d="M12 8.5s1.2-4 3.7-3.3S15 8.5 12 8.5z"/>',
+  swap:'<path d="M7 4L3.5 7.5 7 11"/><path d="M3.5 7.5H16a4 4 0 0 1 4 4"/><path d="M17 20l3.5-3.5L17 13"/><path d="M20.5 16.5H8a4 4 0 0 1-4-4"/>',
 };
 function svg(name, s){ s=s||20; return `<svg class="svgic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`; }
 
@@ -827,8 +864,12 @@ const store = {
   get cfg(){ return {...DEFAULTS, ...JSON.parse(localStorage.getItem('nw_cfg')||'{}')}; },
   set cfg(v){ localStorage.setItem('nw_cfg', JSON.stringify(v)); },
 };
-const rowFromAppt=a=>({id:a.id,os_num:a.osNum,date:a.date,time:a.time,services:a.services,customer:a.customer,plate:a.plate,phone:a.phone,obs:a.obs,status:a.status,created_at:a.createdAt,done_at:a.doneAt});
-const apptFromRow=r=>({id:r.id,osNum:r.os_num,date:r.date,time:r.time,services:r.services||[],customer:r.customer,plate:r.plate,phone:r.phone,obs:r.obs,status:r.status,createdAt:r.created_at,doneAt:r.done_at});
+const rowFromAppt=a=>{
+  const r={id:a.id,os_num:a.osNum,date:a.date,time:a.time,services:a.services,customer:a.customer,plate:a.plate,phone:a.phone,obs:a.obs,status:a.status,created_at:a.createdAt,done_at:a.doneAt};
+  if(a.free){ r.free=true; r.free_type=a.freeType||null; r.free_reason=a.freeReason||null; }
+  return r;
+};
+const apptFromRow=r=>({id:r.id,osNum:r.os_num,date:r.date,time:r.time,services:r.services||[],customer:r.customer,plate:r.plate,phone:r.phone,obs:r.obs,free:!!r.free,freeType:r.free_type||null,freeReason:r.free_reason||'',status:r.status,createdAt:r.created_at,doneAt:r.done_at});
 const rowFromExp=e=>({id:e.id,description:e.desc,amount:e.amount,date:e.date,category:e.cat,created_at:e.createdAt||Date.now()});
 const expFromRow=r=>({id:r.id,desc:r.description,amount:Number(r.amount),date:r.date,cat:r.category,createdAt:r.created_at});
 const sbDocUrl=p=>sb.storage.from('documentos').getPublicUrl(p).data.publicUrl;
@@ -915,7 +956,7 @@ function renderSlots(){
           <div class="veh">${svg(apptVehIcon(a),18)}</div>
           <div class="info"><div class="nm">${a.customer||'Sem nome'}</div>
             <div class="sv">${apptSvcNames(a)}${a.plate?' · '+a.plate:''}${vistoriaDe(a.id).fotos.length?'<span class="flag" title="Avaria registrada"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3L2 20h20z"/><path d="M12 10v4"/><path d="M12 17.2v.1"/></svg></span>':''}</div></div>
-          <div class="rgt"><div class="val mono">${money(apptTotal(a))}</div>
+          <div class="rgt"><div class="val mono">${a.free?`<span class="free-badge">${a.freeType==='permuta'?'PERMUTA':'CORTESIA'}</span>`:money(apptTotal(a))}</div>
             <div class="st">${a.status==='done'?'✓ concluído':'agendado'}</div></div>
         </div>`).join('');
       slot.innerHTML = label + `<div class="body">${cards}<button class="add-mini">+ adicionar neste horário</button></div>`;
@@ -928,11 +969,26 @@ function renderSlots(){
 
 /* ---------- BOOKING ---------- */
 function openBooking(preTime=null){
-  bookState = { services:[], time:preTime, date:ymd(selDate) };
+  bookState = { services:[], time:preTime, date:ymd(selDate), free:false, freeType:'permuta' };
   document.getElementById('fData').value = bookState.date;
   document.getElementById('fCliente').value=''; document.getElementById('fPlaca').value='';
   document.getElementById('fTel').value=''; document.getElementById('fObs').value='';
+  const fr=document.getElementById('fFreeReason'); if(fr) fr.value='';
+  // ícones + labels do bloco gratuita/permuta (SVG, sem emoji)
+  document.getElementById('freeIc').innerHTML = svg('gift',20);
+  const tr=document.getElementById('freeTypeRow').children;
+  tr[0].innerHTML = svg('swap',15)+' Permuta';
+  tr[1].innerHTML = svg('gift',15)+' Cortesia';
+  syncFreeUI();
   renderSvcGrid(); renderTimeGrid(); updateBookTotal(); openSheet('bookSheet');
+}
+function toggleFree(){ bookState.free = !bookState.free; syncFreeUI(); updateBookTotal(); }
+function setFreeType(t){ bookState.freeType = t; syncFreeUI(); }
+function syncFreeUI(){
+  document.getElementById('freeBlock').classList.toggle('on', bookState.free);
+  document.getElementById('freeDetail').hidden = !bookState.free;
+  [...document.getElementById('freeTypeRow').children].forEach(b=>
+    b.classList.toggle('on', b.dataset.t===bookState.freeType));
 }
 document.getElementById('fData').addEventListener('change',e=>{
   bookState.date = e.target.value || ymd(selDate);
@@ -973,7 +1029,13 @@ function renderTimeGrid(){
 }
 function updateBookTotal(){
   const total = bookState.services.reduce((s,id)=>s+(svcById(id)?.price||0),0);
-  document.getElementById('bookTotal').textContent = money(total);
+  const lbl=document.getElementById('bookTotalLbl'), val=document.getElementById('bookTotal');
+  if(bookState.free){
+    lbl.textContent = bookState.freeType==='permuta'?'Permuta — sem entrada':'Cortesia — sem entrada';
+    val.innerHTML = `<span style="color:var(--muted-2);text-decoration:line-through;font-size:16px">${money(total)}</span>`;
+  }else{
+    lbl.textContent='Total'; val.textContent = money(total);
+  }
   document.getElementById('saveBtn').disabled = !(bookState.services.length && bookState.time);
 }
 function saveBooking(){
@@ -986,6 +1048,9 @@ function saveBooking(){
     plate:document.getElementById('fPlaca').value.trim().toUpperCase(),
     phone:document.getElementById('fTel').value.trim(),
     obs:document.getElementById('fObs').value.trim(),
+    free: !!bookState.free,
+    freeType: bookState.free ? (bookState.freeType||'cortesia') : null,
+    freeReason: bookState.free ? document.getElementById('fFreeReason').value.trim() : '',
     status:'scheduled', createdAt:Date.now(),
   };
   DB.appts.push(appt); markOwn(appt.id);
@@ -1012,7 +1077,8 @@ function buildOSHtml(a){
       ${a.phone?`<div><b>Telefone:</b> ${a.phone}</div>`:''}
     </div>
     <table class="os-table"><thead><tr><th>Serviço</th><th class="r">Valor</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="os-total"><span class="l">TOTAL</span><span class="v">${money2(apptTotal(a))}</span></div>
+    <div class="os-total"><span class="l">TOTAL</span><span class="v">${a.free?(a.freeType==='permuta'?'PERMUTA':'CORTESIA'):money2(apptTotal(a))}</span></div>
+    ${a.free?`<div style="text-align:center;font-size:12px;color:#b00;font-weight:700;margin-top:8px">Lavagem sem cobrança${a.freeReason?' — '+a.freeReason.replace(/</g,'&lt;'):''}</div>`:''}
     ${obs}
     <div class="os-sign"><div>Assinatura do cliente</div><div>Responsável — New Wash Express</div></div>
     <div class="os-foot">NEW WASH EXPRESS · Lavagem premium · Agradecemos a preferência</div>
@@ -1194,12 +1260,15 @@ function openApptDetail(id){
   document.getElementById('apptBody').innerHTML = `
     <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px">
       <div class="veh" style="width:48px;height:48px;border-radius:14px;background:var(--surface-2);display:flex;align-items:center;justify-content:center">${svg(apptVehIcon(a),24)}</div>
-      <div><div style="font-weight:800;font-size:18px">${a.customer||'Sem nome'}</div>
+      <div><div style="font-weight:800;font-size:18px">${a.customer||'Sem nome'}${a.free?` <span class="free-badge">${svg(a.freeType==='permuta'?'swap':'gift',12)} ${a.freeType==='permuta'?'PERMUTA':'CORTESIA'}</span>`:''}</div>
       <div style="color:var(--muted);font-size:13px;margin-top:2px">${a.date.split('-').reverse().join('/')} · ${a.time}${a.plate?' · '+a.plate:''}${a.phone?' · '+a.phone:''}</div></div>
     </div>
     <div class="svc-grid" style="margin-top:16px">${svc}</div>${obs}
+    ${a.free?`<div class="free-note"><div class="fn-l">${svg(a.freeType==='permuta'?'swap':'gift',14)} ${a.freeType==='permuta'?'PERMUTA — SEM ENTRADA':'CORTESIA — SEM ENTRADA'}</div><div class="fn-v">${a.freeReason?a.freeReason.replace(/</g,'&lt;'):'Lavagem contabilizada, sem valor cobrado.'}</div></div>`:''}
     ${blocoVistoria(a)}
-    <div class="total-bar"><span class="l">Total</span><span class="v mono">${money(apptTotal(a))}</span></div>
+    ${a.free
+      ? `<div class="total-bar"><span class="l">Entrada no caixa</span><span class="v mono" style="color:var(--red-soft)">R$ 0</span></div>`
+      : `<div class="total-bar"><span class="l">Total</span><span class="v mono">${money(apptTotal(a))}</span></div>`}
     <button class="btn ghost" style="margin-bottom:10px" onclick="printOS('${a.id}')">${svg('share',18)} Ver / compartilhar OS</button>
     ${a.status==='done'
       ? `<button class="btn ghost" onclick="setApptStatus('scheduled')">${svg('undo',18)} Reabrir agendamento</button>`
@@ -1267,14 +1336,19 @@ function renderDash(){
   const appts = store.appts.filter(a=>inRange(a.date,r));
   const done = appts.filter(a=>a.status==='done');
   const lavagens = done.filter(ehLavagem);            // cera avulsa não conta como carro
-  const fat = done.reduce((s,a)=>s+apptTotal(a),0);   // faturamento inclui tudo
+  const gratis   = lavagens.filter(a=>a.free);        // permutas + cortesias (sem entrada)
+  const pagas    = lavagens.filter(a=>!a.free);       // lavagens que entraram no caixa
+  const fat = done.reduce((s,a)=>s+(a.free?0:apptTotal(a)),0);   // faturamento ignora gratuitas/permutas
   const exps = store.exps.filter(e=>inRange(e.date,r));
   const gasto = exps.reduce((s,e)=>s+Number(e.amount),0);
   document.getElementById('kFat').textContent = money(fat);
-  document.getElementById('kFatSub').textContent = `${lavagens.length} lavagem${lavagens.length!==1?'s':''} concluída${lavagens.length!==1?'s':''}`;
+  document.getElementById('kFatSub').textContent =
+    `${lavagens.length} lavagem${lavagens.length!==1?'s':''} concluída${lavagens.length!==1?'s':''}`
+    + (gratis.length?` · ${gratis.length} sem entrada`:'');
   document.getElementById('kCars').textContent = lavagens.length;
-  document.getElementById('kCarsSub').textContent = `${appts.length} agendado${appts.length!==1?'s':''}`;
-  document.getElementById('kTicket').textContent = money(lavagens.length?fat/lavagens.length:0);
+  document.getElementById('kCarsSub').textContent = `${appts.length} agendado${appts.length!==1?'s':''}`
+    + (gratis.length?` · ${gratis.length} gratuita${gratis.length!==1?'s':''}/permuta`:'');
+  document.getElementById('kTicket').textContent = money(pagas.length?fat/pagas.length:0);
   document.getElementById('kGasto').textContent = money(gasto);
   document.getElementById('kGastoSub').textContent = `${exps.length} lançamento${exps.length!==1?'s':''}`;
   const com=comissaoPeriodo(appts);
