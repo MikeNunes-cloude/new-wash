@@ -3,9 +3,21 @@
 <meta name="theme-color" content="#0a0a0a" />
 <title>New Wash Express — Lavagem premium em 30 minutos</title>
 <meta name="description" content="Seu carro lavado no tempo do seu treino. Lavagem premium em até 30 minutos. Agende online." />
-<meta property="og:title" content="New Wash Express — cuidamos do seu carro enquanto você se cuida" />
-<meta property="og:description" content="Deixe o carro, faça sua rotina, volte com ele impecável. Agende em 1 minuto." />
-<meta property="og:image" content="assets/lavagem-fachada.jpg" />
+<!-- preview ao compartilhar (WhatsApp, Instagram, Google) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="New Wash Express" />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:url" content="https://newwashexpress.netlify.app/" />
+<meta property="og:title" content="New Wash Express — seu carro pronto em 30 minutos" />
+<meta property="og:description" content="Cuidamos do seu carro enquanto você se cuida. Agende seu horário em 1 minuto." />
+<meta property="og:image" content="https://newwashexpress.netlify.app/assets/lavagem-fachada.jpg" />
+<meta property="og:image:width" content="1078" />
+<meta property="og:image:height" content="642" />
+<meta property="og:image:alt" content="Profissional da New Wash Express lavando um carro" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="New Wash Express — seu carro pronto em 30 minutos" />
+<meta name="twitter:description" content="Cuidamos do seu carro enquanto você se cuida. Agende seu horário em 1 minuto." />
+<meta name="twitter:image" content="https://newwashexpress.netlify.app/assets/lavagem-fachada.jpg" />
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 <link rel="icon" href="assets/icon-192.png" />
 
@@ -266,7 +278,7 @@
     </div>
     <div class="hero-stats">
       <div class="st"><div class="v">30<span>min</span></div><div class="l">Tempo médio</div></div>
-      <div class="st"><div class="v">R$ 65<span>+</span></div><div class="l">A partir de</div></div>
+      <div class="st"><div class="v">R$ 80<span>+</span></div><div class="l">A partir de</div></div>
       <div class="st"><div class="v">100<span>%</span></div><div class="l">Agendamento online</div></div>
     </div>
   </div>
@@ -449,9 +461,9 @@ const DIAS_VISIVEIS = 14;                     // quantos dias o cliente pode age
 const WHATSAPP = '';                          // ex: '5511999998888' (deixe vazio se ainda não tiver)
 
 const SERVICES=[
-  {id:'hatch', name:'Lavagem simples — Hatch',       desc:'Carro pequeno',         price:65, icon:'car',   main:true},
-  {id:'sedan', name:'Lavagem simples — Sedan / SUV', desc:'Carro médio / SUV',     price:75, icon:'car',   main:true},
-  {id:'camion',name:'Lavagem simples — Camionete',   desc:'Picape / caminhonete',  price:95, icon:'truck', main:true},
+  {id:'hatch', name:'Lavagem simples — Hatch',       desc:'Carro pequeno',         price:80,  icon:'car',   main:true},
+  {id:'sedan', name:'Lavagem simples — Sedan / SUV', desc:'Carro médio / SUV',     price:100, icon:'car',   main:true},
+  {id:'camion',name:'Lavagem simples — Camionete',   desc:'Picape / caminhonete',  price:150, icon:'truck', main:true},
   {id:'cera',  name:'Cera líquida',                  desc:'Adicional de proteção', price:35, icon:'drop',  main:false},
 ];
 const ICONS={
@@ -543,6 +555,16 @@ async function carregarOcupacao(){
   const {data,error}=await sb.from('appointments').select('time').eq('date',state.date);
   if(error){ console.error(error); return; }
   (data||[]).forEach(a=>{ ocupados[a.time]=(ocupados[a.time]||0)+1; });
+}
+function livresDoDia(ds){
+  const agora=new Date(); const ehHoje=ymd(agora)===ds;
+  const min=agora.getHours()*60+agora.getMinutes();
+  return slots(ds).filter(t=>{
+    const [h,m]=t.split(':').map(Number);
+    const passou = ehHoje && (h*60+m) <= min+15;      // 15 min de antecedência
+    const cheio  = (ocupados[t]||0) >= CAPACIDADE_POR_HORARIO;
+    return !passou && !cheio;
+  });
 }
 function renderTimes(){
   const g=document.getElementById('timeGrid'); const hint=document.getElementById('timeHint');
@@ -724,8 +746,12 @@ document.querySelectorAll('.rv').forEach(el=>io.observe(el));
 /* ---------- INIT ---------- */
 (async function init(){
   renderSvcPick(); renderDates();
-  const primeiro=diasDisponiveis()[0];
-  if(primeiro){ state.date=ymd(primeiro); renderDates(); await carregarOcupacao(); }
-  renderTimes(); renderSummary();
+  const dias=diasDisponiveis();
+  for(const d of dias){                       // abre no primeiro dia que tenha vaga
+    state.date=ymd(d);
+    await carregarOcupacao();
+    if(livresDoDia(state.date).length) break;
+  }
+  renderDates(); renderTimes(); renderSummary();
 })();
 </script>
