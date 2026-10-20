@@ -1,0 +1,48 @@
+name: Keep Supabase alive
+
+# Mantém o projeto Supabase (free) ativo: faz um ping diário na API,
+# o que reinicia a contagem de 7 dias de inatividade que causa a pausa.
+# Roda sozinho no GitHub, de graça, sem servidor.
+
+on:
+  schedule:
+    - cron: '17 11 * * *'   # ~08:17 BRT (UTC-3)
+    - cron: '17 23 * * *'   # redundância, caso o GitHub pule um horário
+  workflow_dispatch:          # permite rodar manualmente pelo botão "Run workflow"
+
+permissions:
+  contents: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ping no Supabase (mantém ativo)
+        run: |
+          URL="https://dgfoojpcgywrkhfqlfxd.supabase.co/rest/v1/appointments?select=id&limit=1"
+          KEY="sb_publishable_16cjr1tvjRLcyTiQTr9IbQ_ui3Q1bEA"
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$URL" -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "Resposta do Supabase: HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase não respondeu 200 (HTTP $code) — pode estar pausado ou com problema."
+            exit 1
+          fi
+          echo "Supabase ativo ✓"
+
+      - name: Manter o cron vivo (commit 2x por mês)
+        run: |
+          DAY=$(date -u +%d)
+          if [ "$DAY" = "01" ] || [ "$DAY" = "15" ]; then
+            git config user.name "keepalive-bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            mkdir -p .keepalive
+            date -u +"%Y-%m-%dT%H:%M:%SZ ping ok" > .keepalive/last-run.txt
+            git add .keepalive/last-run.txt
+            git commit -m "keepalive: manter o agendador ativo" || echo "nada a commitar"
+            git push || echo "push falhou (sem alteracao)"
+          else
+            echo "Hoje nao e dia de commit (so dia 01 e 15); ping ja mantem o Supabase ativo."
+          fi
