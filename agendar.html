@@ -163,6 +163,8 @@
   .dcard-d .dmon{font-size:9.5px;color:var(--muted-2);margin-top:2px;text-transform:uppercase;font-weight:700}
   .dcard-d.on{background:var(--red);border-color:var(--red)}
   .dcard-d.on .dow,.dcard-d.on .dmon{color:rgba(255,255,255,.85)}
+  .dcard-d.bloq{opacity:.32;filter:grayscale(.4)}
+  .dcard-d.bloq.on{opacity:1;filter:none}
 
   .timegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
   .tslot{padding:13px 0;border-radius:12px;background:var(--surface);border:1.5px solid var(--line);
@@ -459,6 +461,11 @@ const HORARIOS = {
 const CAPACIDADE_POR_HORARIO = 1;             // quantos carros cabem no mesmo horário
 const DIAS_VISIVEIS = 14;                     // quantos dias o cliente pode agendar à frente
 const WHATSAPP = '';                          // ex: '5511999998888' (deixe vazio se ainda não tiver)
+/* Bloqueio temporário da agenda: datas ANTES desta ficam indisponíveis. A agenda reabre neste dia.
+   Para liberar tudo de novo, deixe '' (string vazia). */
+const BLOQUEIO_ATE = '2026-11-21';
+const bloqueado = ds => !!BLOQUEIO_ATE && ds < BLOQUEIO_ATE;
+const BLOQUEIO_LABEL = BLOQUEIO_ATE ? BLOQUEIO_ATE.split('-').reverse().slice(0,2).join('/') : '';
 
 const SERVICES=[
   {id:'hatch', name:'Lavagem simples — Hatch',       desc:'Carro pequeno',         price:80,  icon:'car',   main:true},
@@ -530,7 +537,7 @@ function renderDates(){
   diasDisponiveis().forEach(d=>{
     const s=ymd(d), hoje=ymd(new Date())===s;
     const b=document.createElement('button');
-    b.className='dcard-d'+(state.date===s?' on':'');
+    b.className='dcard-d'+(state.date===s?' on':'')+(bloqueado(s)?' bloq':'');
     b.innerHTML=`<div class="dow">${hoje?'hoje':DOW[d.getDay()]}</div><div class="dnum">${d.getDate()}</div><div class="dmon">${MON[d.getMonth()]}</div>`;
     b.onclick=async()=>{ state.date=s; state.time=null; renderDates(); await carregarOcupacao(); renderTimes(); renderSummary(); };
     el.appendChild(b);
@@ -543,6 +550,7 @@ function horarioDoDia(ds){
   return HORARIOS[new Date(ds+'T12:00:00').getDay()] || null;
 }
 function slots(ds){
+  if(bloqueado(ds)) return [];          // agenda bloqueada até BLOQUEIO_ATE
   const h=horarioDoDia(ds); if(!h) return [];
   const [oh,om]=h[0].split(':').map(Number), [ch,cm]=h[1].split(':').map(Number);
   const out=[]; let t=oh*60+om; const fim=ch*60+cm;
@@ -570,6 +578,7 @@ function renderTimes(){
   const g=document.getElementById('timeGrid'); const hint=document.getElementById('timeHint');
   g.innerHTML='';
   if(!state.date){ hint.textContent='Escolha um dia para ver os horários livres.'; return; }
+  if(bloqueado(state.date)){ hint.textContent=`Agenda fechada neste dia — reabrimos ${BLOQUEIO_LABEL}.`; return; }
   const agora=new Date(); const ehHoje=ymd(agora)===state.date;
   const minutosAgora=agora.getHours()*60+agora.getMinutes();
   let livres=0;
@@ -617,6 +626,7 @@ async function confirmar(){
   const obsTxt=document.getElementById('fObs').value.trim();
   if(!nome){ toast('Preencha seu nome'); document.getElementById('fNome').focus(); return; }
   if(!tel){ toast('Preencha seu WhatsApp'); document.getElementById('fTel').focus(); return; }
+  if(bloqueado(state.date)){ toast(`Agenda fechada até ${BLOQUEIO_LABEL}.`); return; }
 
   const btn=document.getElementById('confirmBtn');
   btn.disabled=true; btn.textContent='Confirmando…';
