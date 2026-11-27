@@ -332,7 +332,7 @@
     </div>
     <div class="steps">
       <div class="step rv"><div class="n">1</div><div><h3>Escolha o serviço</h3><p>Selecione o tipo do seu carro e adicione cera se quiser aquele brilho extra.</p></div></div>
-      <div class="step rv"><div class="n">2</div><div><h3>Marque data e hora</h3><p>Horários de 30 em 30 minutos. Você vê na hora o que está livre.</p></div></div>
+      <div class="step rv"><div class="n">2</div><div><h3>Marque data e hora</h3><p>Horários de hora em hora. Você vê na hora o que está livre.</p></div></div>
       <div class="step rv"><div class="n">3</div><div><h3>Chegue e entregue</h3><p>Recebe sua ordem de serviço no WhatsApp e é só aparecer no horário.</p></div></div>
     </div>
   </div>
@@ -451,11 +451,11 @@ const sb = window.supabase.createClient(SB_URL, SB_KEY);
 // horário por dia da semana — null = fechado
 const HORARIOS = {
   0: null,                  // domingo — fechado
-  1: ['08:00','19:00'],     // segunda
-  2: ['08:00','19:00'],     // terça
-  3: ['08:00','19:00'],     // quarta
-  4: ['08:00','19:00'],     // quinta
-  5: ['08:00','19:00'],     // sexta
+  1: ['07:00','19:00'],     // segunda
+  2: ['07:00','19:00'],     // terça
+  3: ['07:00','19:00'],     // quarta
+  4: ['07:00','19:00'],     // quinta
+  5: ['07:00','19:00'],     // sexta
   6: ['07:00','15:00'],     // sábado
 };
 const CAPACIDADE_POR_HORARIO = 1;             // quantos carros cabem no mesmo horário
@@ -554,7 +554,8 @@ function slots(ds){
   const h=horarioDoDia(ds); if(!h) return [];
   const [oh,om]=h[0].split(':').map(Number), [ch,cm]=h[1].split(':').map(Number);
   const out=[]; let t=oh*60+om; const fim=ch*60+cm;
-  while(t<fim){ out.push(`${pad(Math.floor(t/60))}:${pad(t%60)}`); t+=30; }
+  const ALMOCO_INI=12*60, ALMOCO_FIM=14*60;          // sem horários das 12h às 14h
+  while(t<fim){ if(t<ALMOCO_INI||t>=ALMOCO_FIM) out.push(`${pad(Math.floor(t/60))}:${pad(t%60)}`); t+=60; }
   return out;
 }
 async function carregarOcupacao(){
