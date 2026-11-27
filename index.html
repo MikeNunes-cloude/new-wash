@@ -740,11 +740,11 @@ const DEFAULTS = { pin:'177042' };
    (precisa bater com a landing agendar.html) */
 const HORARIOS = {
   0: null,                  // domingo — fechado
-  1: ['08:00','19:00'],     // segunda
-  2: ['08:00','19:00'],     // terça
-  3: ['08:00','19:00'],     // quarta
-  4: ['08:00','19:00'],     // quinta
-  5: ['08:00','19:00'],     // sexta
+  1: ['07:00','19:00'],     // segunda
+  2: ['07:00','19:00'],     // terça
+  3: ['07:00','19:00'],     // quarta
+  4: ['07:00','19:00'],     // quinta
+  5: ['07:00','19:00'],     // sexta
   6: ['07:00','15:00'],     // sábado
 };
 
@@ -919,7 +919,8 @@ function timeSlots(ds){
   const h = horarioDoDia(ds || ymd(selDate)); if(!h) return [];
   const [oh,om]=h[0].split(':').map(Number), [ch,cm]=h[1].split(':').map(Number);
   const out=[]; let t=oh*60+om; const end=ch*60+cm;
-  while(t<end){ out.push(`${pad(Math.floor(t/60))}:${pad(t%60)}`); t+=30; } return out;
+  const ALMOCO_INI=12*60, ALMOCO_FIM=14*60;          // sem horários das 12h às 14h
+  while(t<end){ if(t<ALMOCO_INI||t>=ALMOCO_FIM) out.push(`${pad(Math.floor(t/60))}:${pad(t%60)}`); t+=60; } return out;
 }
 const apptsFor = ds => store.appts.filter(a=>a.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
 const svcById = id => SERVICES.find(s=>s.id===id);
@@ -946,7 +947,7 @@ function renderSlots(){
     const items = byTime[t]||[];
     const slot = document.createElement('div');
     slot.className = 'slot'+(items.length?' filled':'');
-    const label = `<div class="time">${t}<small>30 min</small></div>`;
+    const label = `<div class="time">${t}<small>1h</small></div>`;
     if(!items.length){
       slot.innerHTML = label + `<div class="body empty">+ agendar</div>`;
       slot.querySelector('.body').onclick = ()=>openBooking(t);
