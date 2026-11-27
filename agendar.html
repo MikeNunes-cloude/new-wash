@@ -463,7 +463,7 @@ const DIAS_VISIVEIS = 14;                     // quantos dias o cliente pode age
 const WHATSAPP = '';                          // ex: '5511999998888' (deixe vazio se ainda não tiver)
 /* Bloqueio temporário da agenda: datas ANTES desta ficam indisponíveis. A agenda reabre neste dia.
    Para liberar tudo de novo, deixe '' (string vazia). */
-const BLOQUEIO_ATE = '2026-11-21';
+const BLOQUEIO_ATE = '2026-11-30';
 const bloqueado = ds => !!BLOQUEIO_ATE && ds < BLOQUEIO_ATE;
 const BLOQUEIO_LABEL = BLOQUEIO_ATE ? BLOQUEIO_ATE.split('-').reverse().slice(0,2).join('/') : '';
 
@@ -471,7 +471,7 @@ const SERVICES=[
   {id:'hatch', name:'Lavagem simples — Hatch',       desc:'Carro pequeno',         price:80,  icon:'car',   main:true},
   {id:'sedan', name:'Lavagem simples — Sedan / SUV', desc:'Carro médio / SUV',     price:100, icon:'car',   main:true},
   {id:'camion',name:'Lavagem simples — Camionete',   desc:'Picape / caminhonete',  price:150, icon:'truck', main:true},
-  {id:'cera',  name:'Cera líquida',                  desc:'Adicional de proteção', price:35, icon:'drop',  main:false},
+  {id:'cera',  name:'Cera líquida',                  desc:'Adicional de proteção', price:55, icon:'drop',  main:false},
 ];
 const ICONS={
   car:'<path d="M3 12l1.8-5A2.5 2.5 0 0 1 7.2 5.3h9.6a2.5 2.5 0 0 1 2.4 1.7L21 12"/><path d="M3 12h18v4.5a1 1 0 0 1-1 1h-1.4"/><path d="M6.4 17.5H4a1 1 0 0 1-1-1V12"/><circle cx="7" cy="17.4" r="1.7"/><circle cx="17" cy="17.4" r="1.7"/><path d="M8.7 17.4h6.6"/>',
