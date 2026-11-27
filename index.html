@@ -745,7 +745,7 @@ const HORARIOS = {
   3: ['07:00','19:00'],     // quarta
   4: ['07:00','19:00'],     // quinta
   5: ['07:00','19:00'],     // sexta
-  6: ['07:00','15:00'],     // sábado
+  6: ['07:00','17:00'],     // sábado
 };
 
 /* ---------- ÍCONES VETORIAIS (SVG, traço fino) ---------- */
@@ -919,7 +919,8 @@ function timeSlots(ds){
   const h = horarioDoDia(ds || ymd(selDate)); if(!h) return [];
   const [oh,om]=h[0].split(':').map(Number), [ch,cm]=h[1].split(':').map(Number);
   const out=[]; let t=oh*60+om; const end=ch*60+cm;
-  const ALMOCO_INI=12*60, ALMOCO_FIM=14*60;          // sem horários das 12h às 14h
+  const sab = new Date((ds||ymd(selDate))+'T12:00:00').getDay()===6;   // sábado: almoço 12h→13h
+  const ALMOCO_INI=12*60, ALMOCO_FIM=(sab?13:14)*60;                   // dias úteis: 12h→14h
   while(t<end){ if(t<ALMOCO_INI||t>=ALMOCO_FIM) out.push(`${pad(Math.floor(t/60))}:${pad(t%60)}`); t+=60; } return out;
 }
 const apptsFor = ds => store.appts.filter(a=>a.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
