@@ -152,6 +152,19 @@
   .cli-tag.sched{background:rgba(46,199,122,.12);color:var(--green)}
   .cli-tag.call{background:rgba(193,18,31,.15);color:var(--red-soft)}
   .cli-tag.called{background:var(--surface-2);color:var(--muted)}
+  .cli-tag.gift{background:rgba(227,183,51,.14);color:#ffd75e;display:inline-flex;align-items:center;gap:4px}
+  .fid{background:var(--black);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:18px}
+  .fid.on{border-color:#e3b733;background:linear-gradient(135deg,rgba(227,183,51,.13),rgba(227,183,51,.03))}
+  .fid-top{display:flex;align-items:center;gap:7px;font-size:14px;margin-bottom:8px}
+  .fid.on .fid-top{color:#ffd75e;font-size:15px}
+  .fid-sub{font-size:12px;color:var(--muted);line-height:1.45}
+  /* reconhecimento do cliente no agendamento */
+  .cli-match{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;margin:-4px 0 14px;
+    background:rgba(46,199,122,.07);border:1px solid rgba(46,199,122,.3)}
+  .cli-match .cli-av{width:36px;height:36px;font-size:12px;border-radius:10px}
+  .cli-match .t1{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .cli-match .t2{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .cli-match .gift{color:#ffd75e;font-weight:700}
   .cli-empty{text-align:center;color:var(--muted-2);padding:46px 20px;font-size:14px;line-height:1.5}
   .cli-note{font-size:12px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px;line-height:1.45}
   /* selos de assinante */
@@ -668,6 +681,7 @@
       <label class="fld"><span class="lb">Placa</span><input class="inp" id="fPlaca" placeholder="ABC-1D23" style="text-transform:uppercase" /></label>
       <label class="fld"><span class="lb">Telefone</span><input class="inp" id="fTel" placeholder="(00) 0000-0000" inputmode="tel" /></label>
     </div>
+    <div id="fCliInfo"></div>
     <label class="fld"><span class="lb">Observações</span>
       <textarea class="inp" id="fObs" placeholder="Ex: riscos na porta, cliente vai esperar, retirar às 14h…"></textarea></label>
     <div class="free-block" id="freeBlock">
@@ -1059,6 +1073,7 @@ function openBooking(preTime=null){
   document.getElementById('fCliente').value=''; document.getElementById('fPlaca').value='';
   document.getElementById('fTel').value=''; document.getElementById('fObs').value='';
   const fr=document.getElementById('fFreeReason'); if(fr) fr.value='';
+  document.getElementById('fCliInfo').innerHTML='';
   // ícones + labels do bloco gratuita/permuta (SVG, sem emoji)
   document.getElementById('freeIc').innerHTML = svg('gift',20);
   const tr=document.getElementById('freeTypeRow').children;
@@ -1731,6 +1746,7 @@ const PLANOS = {
   ouro: { nome:'Ouro',  lavagens:4, preco:{hatch:239, sedan:289, camion:429} },
 };
 const DIAS_CHAMAR = 14;                       // sem lavar há 14+ dias → "chamar de volta"
+const FIDELIDADE  = 10;                       // a cada 10 lavagens PAGAS, 1 brinde (permuta/cortesia não contam)
 const SELO_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/></svg>';
 let CLI = {}, cliCloud = null, cliFiltro = 'todos';
 const escH = s => String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1741,18 +1757,30 @@ const iniciais = n => (String(n||'?').trim().split(/\s+/).filter(Boolean).slice(
 const seloHTML = plan => PLANOS[plan] ? `<span class="selo ${plan}">${SELO_SVG}${PLANOS[plan].nome}</span>` : '';
 const diasEntre = (a,b) => Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00'))/86400000);
 
+// mesma pessoa = mesmos 8 últimos dígitos do telefone (com/sem DDD, com 55, espaço, traço…)
+const fim8 = f => f.slice(-8);
+const recPorFone = f => Object.values(CLI).find(r=>r.id[0]==='p' && fim8(r.id.slice(1))===fim8(f));
+const recPorNome = n => Object.values(CLI).find(r=>r.id[0]==='n' && r.id.slice(1)===normNome(n));
+
 // agrupa os agendamentos por cliente (telefone; sem telefone → nome)
 function montarClientes(){
-  const hoje = ymd(new Date()), mapa = {}, porNome = {};
+  const hoje = ymd(new Date()), grupos = {}, porNome = {};
   const ordem = [...store.appts].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   ordem.filter(a=>normFone(a.phone).length>=8).forEach(a=>{
-    const id='p'+normFone(a.phone);
-    (mapa[id]=mapa[id]||{id, appts:[]}).appts.push(a);
-    if(a.customer) porNome[normNome(a.customer)]=id;
+    const f=normFone(a.phone), k='f'+fim8(f);
+    const g = grupos[k] = grupos[k] || {appts:[], fone:''};
+    g.appts.push(a); if(f.length>=g.fone.length) g.fone=f;          // guarda o número mais completo
+    if(a.customer) porNome[normNome(a.customer)]=k;
   });
   ordem.filter(a=>normFone(a.phone).length<8 && normNome(a.customer)).forEach(a=>{
-    const id = porNome[normNome(a.customer)] || ('n'+normNome(a.customer));   // junta com o mesmo nome que tem telefone
-    (mapa[id]=mapa[id]||{id, appts:[]}).appts.push(a);
+    const k = porNome[normNome(a.customer)] || ('n'+normNome(a.customer));   // junta com o mesmo nome que tem telefone
+    (grupos[k]=grupos[k]||{appts:[], fone:''}).appts.push(a);
+  });
+  const mapa = {};
+  Object.entries(grupos).forEach(([k,g])=>{
+    const rec = k[0]==='f' ? recPorFone(g.fone) : recPorNome(k.slice(1));
+    const id = rec ? rec.id : (k[0]==='f' ? 'p'+g.fone : 'n'+k.slice(1));
+    mapa[id] = {id, appts:g.appts};
   });
   // registros salvos sem agendamento (ex.: assinante cadastrado na mão)
   Object.values(CLI).forEach(r=>{ if(!mapa[r.id]) mapa[r.id]={id:r.id, appts:[]}; });
@@ -1777,8 +1805,15 @@ function montarClientes(){
       prox: prox ? prox.date : null,
       usoMes: c.appts.filter(a=>ehLavagem(a) && a.date.slice(0,7)===mes && a.date<=hoje).length,
       contato: rec.last_contact || null,
+      ...fidelidade(visitas, rec),
     };
   });
+}
+function fidelidade(visitas, rec){
+  const pagas = visitas.filter(a=>!a.free).length;
+  const ganhos = Math.floor(pagas/FIDELIDADE), usados = Math.min(rec.brindes||0, ganhos);
+  return { pagas, brinde: ganhos-usados, brindesUsados: usados,
+    rumoBrinde: pagas % FIDELIDADE, desde: visitas[0]?.date || null };
 }
 const precisaChamar = c => c.dias!==null && c.dias>=DIAS_CHAMAR && !c.prox;
 
@@ -1786,15 +1821,18 @@ function renderClientes(){
   const todos = montarClientes();
   const busca = normNome(document.getElementById('cliBusca').value);
   const chamar = todos.filter(precisaChamar), assin = todos.filter(c=>c.plano);
-  const filtros = [['todos','Todos',todos.length],['chamar','Chamar de volta',chamar.length],['assin','Assinantes',assin.length]];
+  const brinde = todos.filter(c=>c.brinde>0), fieis = todos.filter(c=>c.pagas>0);
+  const filtros = [['todos','Todos',todos.length],['chamar','Chamar de volta',chamar.length],['brinde','Brinde liberado',brinde.length],
+    ['fieis','Mais fiéis',fieis.length],['assin','Assinantes',assin.length]];
   document.getElementById('cliFiltros').innerHTML = filtros.map(([k,l,n])=>
     `<button class="${cliFiltro===k?'on':''}" onclick="cliFiltro='${k}';renderClientes()">${l}<span class="n">${n}</span></button>`).join('');
 
-  let lista = cliFiltro==='chamar' ? chamar : cliFiltro==='assin' ? assin : todos;
+  let lista = {chamar, assin, brinde, fieis}[cliFiltro] || todos;
   if(busca){ const b=busca.replace(/\D/g,''); lista = lista.filter(c=>
     normNome(c.nome).includes(busca) || normNome(c.placa).includes(busca) || (b.length>=3 && c.fone.includes(b))); }
   // ordem: quem está há mais tempo sem lavar primeiro; nunca lavou (só agendado) no fim
-  lista.sort((a,b)=>(b.dias??-1)-(a.dias??-1) || a.nome.localeCompare(b.nome));
+  if(cliFiltro==='fieis') lista.sort((a,b)=>b.pagas-a.pagas || (a.dias??1e9)-(b.dias??1e9));
+  else lista.sort((a,b)=>(b.dias??-1)-(a.dias??-1) || a.nome.localeCompare(b.nome));
 
   document.getElementById('cliAviso').innerHTML = cliCloud===false
     ? `<div class="cli-note">Os selos e observações estão sendo salvos só neste aparelho. Para sincronizar entre os celulares, rode o SQL <b>supabase-clientes.sql</b> no Supabase.</div>`
@@ -1802,7 +1840,7 @@ function renderClientes(){
 
   const el = document.getElementById('cliLista');
   if(!lista.length){
-    el.innerHTML = `<div class="cli-empty">${busca?'Nenhum cliente encontrado.':cliFiltro==='chamar'?'Ninguém para chamar agora — todos lavaram há menos de '+DIAS_CHAMAR+' dias ou já têm horário.':cliFiltro==='assin'?'Nenhum assinante ainda.<br>Abra um cliente e escolha Prata ou Ouro.':'Os clientes aparecem aqui conforme os agendamentos chegam.'}</div>`;
+    el.innerHTML = `<div class="cli-empty">${busca?'Nenhum cliente encontrado.':cliFiltro==='brinde'?'Ninguém com brinde liberado ainda.<br>A cada '+FIDELIDADE+' lavagens pagas o cliente ganha 1 brinde.':cliFiltro==='fieis'?'Nenhuma lavagem registrada ainda.':cliFiltro==='chamar'?'Ninguém para chamar agora — todos lavaram há menos de '+DIAS_CHAMAR+' dias ou já têm horário.':cliFiltro==='assin'?'Nenhum assinante ainda.<br>Abra um cliente e escolha Prata ou Ouro.':'Os clientes aparecem aqui conforme os agendamentos chegam.'}</div>`;
     return;
   }
   el.innerHTML = lista.map(c=>{
@@ -1811,7 +1849,8 @@ function renderClientes(){
     else if(c.dias===0){ dTxt='hoje'; dCls='ok'; }
     else { dTxt = c.dias===1 ? 'há 1 dia' : `há ${c.dias} dias`; dCls = c.dias>=DIAS_CHAMAR?'late':c.dias<=7?'ok':'mid'; }
     let tag='';
-    if(c.prox) tag=`<span class="cli-tag sched">Agendado ${c.prox.split('-').reverse().slice(0,2).join('/')}</span>`;
+    if(c.brinde>0) tag=`<span class="cli-tag gift">${svg('gift',11)} Brinde liberado</span>`;
+    else if(c.prox) tag=`<span class="cli-tag sched">Agendado ${c.prox.split('-').reverse().slice(0,2).join('/')}</span>`;
     else if(precisaChamar(c)) tag = c.contato && Date.now()-c.contato < 7*86400000
       ? `<span class="cli-tag called">Chamado ${new Date(c.contato).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</span>`
       : `<span class="cli-tag call">Chamar de volta</span>`;
@@ -1821,11 +1860,13 @@ function renderClientes(){
       <div class="cli-main"><div class="cli-nm"><span class="t">${escH(c.nome)}</span>${seloHTML(c.plano)}</div>
         <div class="cli-sub">${escH(sub)||'sem contato'}</div></div>
       <div class="cli-rgt"><div class="cli-days ${dCls}">${dTxt}</div>
-        <div class="cli-cnt">${c.visitas.length} lavage${c.visitas.length===1?'m':'ns'}</div>${tag}</div>
+        <div class="cli-cnt">${c.visitas.length} lavage${c.visitas.length===1?'m':'ns'}${c.pagas&&!c.brinde?` · ${c.rumoBrinde}/${FIDELIDADE}`:''}</div>${tag}</div>
     </div>`;
   }).join('');
 }
 document.getElementById('cliBusca').addEventListener('input', renderClientes);
+document.getElementById('fTel').addEventListener('input', reconhecerCliente);
+document.getElementById('fCliente').addEventListener('change', reconhecerCliente);
 
 let cliAtual=null;
 function abrirCliente(id){
@@ -1847,6 +1888,16 @@ function abrirCliente(id){
     <div class="cli-acts">
       ${c.fone.length>=10?`<button class="btn wa" onclick="chamarWhats()">${svg('chat',17)} WhatsApp</button>`:''}
       <button class="btn ghost" onclick="agendarCliente()">${svg('plus',17)} Agendar</button>
+    </div>
+    <div class="lb-solo">Fidelidade</div>
+    <div class="fid ${c.brinde?'on':''}">
+      ${c.brinde
+        ? `<div class="fid-top">${svg('gift',18)} <b>Brinde liberado!${c.brinde>1?' ('+c.brinde+')':''}</b></div>
+           <div class="fid-sub" style="margin-bottom:12px">Completou ${c.pagas} lavagens pagas. Entregue o brinde e marque aqui.</div>
+           <button class="btn" onclick="entregarBrinde()">Marcar brinde como entregue</button>`
+        : `<div class="fid-top"><b>${c.rumoBrinde} de ${FIDELIDADE}</b>&nbsp;lavagens para o próximo brinde</div>
+           <div class="plan-bar"><i style="width:${c.rumoBrinde/FIDELIDADE*100}%;background:var(--red)"></i></div>`}
+      <div class="fid-sub" style="margin-top:9px">${c.pagas} lavage${c.pagas===1?'m paga':'ns pagas'} no total${c.desde?' · cliente desde '+c.desde.split('-').reverse().join('/'):''}${c.brindesUsados?' · '+c.brindesUsados+' brinde'+(c.brindesUsados>1?'s':'')+' já entregue'+(c.brindesUsados>1?'s':''):''}</div>
     </div>
     <div class="lb-solo">Assinatura</div>
     <div class="plan-pick">
@@ -1872,6 +1923,11 @@ async function salvarCliente(campos){
   else localStorage.setItem('nw_clients', JSON.stringify(CLI));
   renderClientes(); renderSlots();
 }
+async function entregarBrinde(){
+  const c=cliAtual; if(!c || c.brinde<1) return;
+  await salvarCliente({brindes: c.brindesUsados+1});
+  toast('Brinde entregue ✓'); abrirCliente(c.id);
+}
 async function definirPlano(plan){
   await salvarCliente({plan});
   toast(plan ? `Assinante ${PLANOS[plan].nome} ✓` : 'Plano removido');
@@ -1894,13 +1950,33 @@ function agendarCliente(){
     document.getElementById('fTel').value=c.fone?foneBR(c.fone):'';
     document.getElementById('fPlaca').value=c.placa||'';
     if(c.carro){ bookState.services=[c.carro]; renderSvcGrid(); updateBookTotal(); }
+    reconhecerCliente();
   },280);
 }
 // plano do cliente de um agendamento (para mostrar o selo na agenda)
 function planoDoAppt(a){
   const f=normFone(a.phone);
-  const id = f.length>=8 ? 'p'+f : 'n'+normNome(a.customer);
-  return PLANOS[CLI[id]?.plan] ? CLI[id].plan : null;
+  const rec = f.length>=8 ? recPorFone(f) : recPorNome(a.customer);
+  return PLANOS[rec?.plan] ? rec.plan : null;
+}
+// reconhece o cliente enquanto digita o telefone (ou o nome) no agendamento do app
+function reconhecerCliente(){
+  const box=document.getElementById('fCliInfo'); if(!box) return;
+  const f=normFone(document.getElementById('fTel').value), nome=normNome(document.getElementById('fCliente').value);
+  const cs=montarClientes();
+  const c = (f.length>=8 && cs.find(x=>x.fone && fim8(x.fone)===fim8(f)))
+         || (f.length<8 && nome.length>=3 && cs.find(x=>normNome(x.nome)===nome)) || null;
+  if(!c){ box.innerHTML=''; return; }
+  const nomeEl=document.getElementById('fCliente'), telEl=document.getElementById('fTel'), placaEl=document.getElementById('fPlaca');
+  if(!nomeEl.value.trim() && c.nome!=='Sem nome') nomeEl.value=c.nome;
+  if(f.length<8 && c.fone) telEl.value=foneBR(c.fone);
+  if(!placaEl.value.trim() && c.placa) placaEl.value=c.placa;
+  const quando = c.dias===null ? 'primeira lavagem' : c.dias===0 ? 'lavou hoje' : `última lavagem há ${c.dias} dia${c.dias===1?'':'s'}`;
+  box.innerHTML=`<div class="cli-match">
+    <div class="cli-av ${c.plano||''}">${escH(iniciais(c.nome))}</div>
+    <div style="min-width:0"><div class="t1">Cliente já cadastrado ${seloHTML(c.plano)}</div>
+      <div class="t2">${c.visitas.length} lavage${c.visitas.length===1?'m':'ns'} · ${quando}${c.brinde>0?' · <span class="gift">brinde liberado!</span>':c.pagas?` · ${c.rumoBrinde}/${FIDELIDADE} p/ brinde`:''}</div></div>
+  </div>`;
 }
 async function carregarClientes(){
   const {data,error} = await sb.from('clients').select('*');
