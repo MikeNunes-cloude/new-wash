@@ -7,8 +7,10 @@ create table if not exists clients (
   plan         text,               -- 'prata' | 'ouro' | null
   notes        text,
   last_contact bigint,             -- quando foi chamado no WhatsApp (ms)
+  brindes      int default 0,      -- brindes de fidelidade já entregues
   updated_at   bigint
 );
+alter table clients add column if not exists brindes int default 0;
 
 alter table clients enable row level security;
 drop policy if exists "app acesso clients" on clients;
